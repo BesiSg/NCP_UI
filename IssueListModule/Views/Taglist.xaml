@@ -1,0 +1,30 @@
+<UserControl x:Class="RepositoriesModule.Views.Taglist"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:IssuelistModule="clr-namespace:RepositoriesModule.Views"
+             mc:Ignorable="d"
+             xmlns:utility="clr-namespace:Utility;assembly=Utility" 
+             d:DesignHeight="450" d:DesignWidth="1910"
+             xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Button Height="30" Width="30" Margin="0,0,10,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Import" Command="{Binding ImportDataCommand}">
+                <Image Source="/Resource/Recipe_Load.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="0,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}">
+                <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+        </StackPanel>
+        <DataGrid Background="LightGray" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" ItemsSource="{Binding Content}" CanUserDeleteRows="False"
+                                AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="FullRow" EnableRowVirtualization="True" GridLinesVisibility="All" 
+                                ColumnHeaderHeight="30" RowHeight="25" SelectedItem="{Binding Selected}" Height="780">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="displayId" Binding="{Binding displayId}" IsReadOnly="True" Width="200" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
+                <DataGridTextColumn Header="latestCommit" Binding="{Binding latestCommit}" IsReadOnly="True" Width="200" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </StackPanel>
+</UserControl>

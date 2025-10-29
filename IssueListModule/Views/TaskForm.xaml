@@ -1,0 +1,47 @@
+<UserControl x:Class="RepositoriesModule.Views.TaskForm"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:IssuelistModule="clr-namespace:RepositoriesModule.Views"
+             mc:Ignorable="d"
+             xmlns:utility="clr-namespace:Utility;assembly=Utility" 
+             d:DesignWidth="1910"
+             xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+    <Border Style="{StaticResource FrameWithShadow}">
+        <StackPanel Orientation="Horizontal" Margin="10">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                    <Label Style="{StaticResource LB_ItemContent_Left}" Content="Project" Width="80"/>
+                    <TextBox Style="{StaticResource MahApps.Styles.TextBox.Search}" Text="{Binding Form.Query}" Width="300"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                    <Label Style="{StaticResource LB_ItemContent_Left}" Content="Project" Width="80"/>
+                    <ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding Form.Project}" DisplayMemberPath="key" Width="150"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Label Style="{StaticResource LB_ItemContent_Left}" Content="Repository" Width="80"/>
+                    <ComboBox ItemsSource="{Binding Repositories}" SelectedItem="{Binding Form.Repository}" DisplayMemberPath="slug" Width="150"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Label Style="{StaticResource LB_ItemContent_Left}" Content="Branch" Width="80"/>
+                    <ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding Form.Branch}" DisplayMemberPath="displayId" Width="150"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="20,0,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                    <Label Style="{StaticResource LB_ItemContent_Left}" Content="LatestTag" Width="80"/>
+                    <Label Style="{StaticResource LB_ItemData_Center}" Content="{Binding Form.LatestTag.displayId}" Width="150"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Label Style="{StaticResource LB_ItemContent_Left}" Content="NextTag" Width="80"/>
+                    <Label Style="{StaticResource LB_ItemData_Center}" Content="{Binding Form.NextTag}" Width="150"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+
+</UserControl>
