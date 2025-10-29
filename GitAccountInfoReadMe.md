@@ -40,9 +40,9 @@ git branch -M main
 
 Format: git remote set-url origin https://<PAT>@<HOST>/<USERNAME>/<REPOSITORY>.git
 
-git remote add origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP\_UI.git
+git remote add origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP_UI.git
 
-git remote set-url origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP\_UI.git
+git remote set-url origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP_UI.git
 
 git push -u origin main
 
@@ -50,9 +50,9 @@ git push -u origin main
 
 **Commit new changes:**
 
-git remote add origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP\_UI.git
+git remote add origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP_UI.git
 
-git remote set-url origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP\_UI.git
+git remote set-url origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP_UI.git
 
 git add .
 
@@ -76,9 +76,9 @@ cd to/your/local/repo
 
 git init
 
-git remote add origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP\_UI.git
+git remote add origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP_UI.git
 
-git remote set-url origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP\_UI.git
+git remote set-url origin https://ghp\_smRD3AoobBDWSMHzNkI5057xqKAMec22KLdX@github.com/BesiSg/NCP_UI.git
 
 git pull origin main
 
