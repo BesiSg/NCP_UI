@@ -66,7 +66,7 @@ git push origin main
 
 git reset --hard
 
-git pull
+git pull origin main
 
 
 
