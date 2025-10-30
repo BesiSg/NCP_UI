@@ -1,14 +1,14 @@
-﻿using System.Net.Http;
+﻿using BitBucketHandler;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Utility.Lib.BitBucketRepositories;
 
 namespace BitBucket
 {
-    public class BitBucketRepositoryHandler(string token, BitBucketStorage<Repository> dataset) : BitBucket(token)
+    public class BitBucketRepositoryHandler(string token, BitBucketStorage<Repository> dataset) : BitBucket<BitBucketStorage<Repository>>(token, dataset), iBitBucketHandler
     {
-        protected BitBucketStorage<Repository> _dataset = dataset;
-        public async Task SearchForRepositoriesAsync(string projectKey)
+        public async Task GetAllAsync(string key)//string projectKey
         {
             var listofRepos = new List<Repository>();
             using (HttpClient client = new HttpClient())
@@ -19,7 +19,7 @@ namespace BitBucket
                 try
                 {
                     // Send GET request
-                    HttpResponseMessage response = await client.GetAsync($"{_baseURL}/projects/{projectKey}/repos?{limitposURL}");
+                    HttpResponseMessage response = await client.GetAsync($"{_baseURL}/projects/{key}/repos?{limitposURL}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -39,7 +39,7 @@ namespace BitBucket
             }
             lock (_dataset)
             {
-                _dataset.Update(listofRepos, projectKey);
+                _dataset.Update(listofRepos, key);
             }
         }
     }

@@ -1,15 +1,14 @@
-﻿using System.Net.Http;
+﻿using BitBucketHandler;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Utility.Lib.BitBucketRepositories;
 
 namespace BitBucket
 {
-    public class BitBucketProjectHandler(string token, BitBucketStorage<Project> dataset) : BitBucket(token)
+    public class BitBucketProjectHandler(string token, BitBucketStorage<Project> dataset) : BitBucket<BitBucketStorage<Project>>(token, dataset), iBitBucketHandler
     {
-        //string token = "BBDC-ODY0OTA2MDI3NzE5OqsVe462P4amY13co6pHfMUQbKUq";
-        protected BitBucketStorage<Project> _dataset = dataset;
-        public async Task SearchForProjectsAsync()
+        public async Task GetAllAsync(string key = "0")
         {
             int? start = 0;
             bool? isLastPage = false;
@@ -50,7 +49,7 @@ namespace BitBucket
             }
             lock (_dataset)
             {
-                _dataset.Update(projects, "0");
+                _dataset.Update(projects, key);
             }
         }
     }

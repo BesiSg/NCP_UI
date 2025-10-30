@@ -11,15 +11,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utility", "Utility\Utility.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiraWrapper", "JiraWrapper\JiraWrapper.csproj", "{B9DA90F7-E15C-4393-834F-05060EE1FF14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories", "IssueListModule\Repositories.csproj", "{A30B6A95-12E4-442F-8175-D63CA74C51D9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Handlers", "Handlers\Handlers.csproj", "{33BAA0BA-277C-4350-9A57-E3F6D557E587}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories", "Repositories\Repositories.csproj", "{A30B6A95-12E4-442F-8175-D63CA74C51D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BesiAI", "BesiAI\BesiAI.csproj", "{A0CFAE6D-EB8D-406B-AC46-20B218E73F29}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitBucket", "BitBucket\BitBucket.csproj", "{CE27C386-D71A-7890-DA7D-934232D9B0C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserAccountModule", "UserAccountModule\UserAccountModule.csproj", "{0A9E2B70-EE71-4157-9573-88D1B5626F38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilesHandler", "FilesHandler\FilesHandler.csproj", "{A8F56D01-11F5-456A-B123-327CB367CDCA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,10 +47,6 @@ Global
 		{A30B6A95-12E4-442F-8175-D63CA74C51D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A30B6A95-12E4-442F-8175-D63CA74C51D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A30B6A95-12E4-442F-8175-D63CA74C51D9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{33BAA0BA-277C-4350-9A57-E3F6D557E587}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{33BAA0BA-277C-4350-9A57-E3F6D557E587}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{33BAA0BA-277C-4350-9A57-E3F6D557E587}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{33BAA0BA-277C-4350-9A57-E3F6D557E587}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A0CFAE6D-EB8D-406B-AC46-20B218E73F29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A0CFAE6D-EB8D-406B-AC46-20B218E73F29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0CFAE6D-EB8D-406B-AC46-20B218E73F29}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,6 +59,10 @@ Global
 		{0A9E2B70-EE71-4157-9573-88D1B5626F38}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A9E2B70-EE71-4157-9573-88D1B5626F38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A9E2B70-EE71-4157-9573-88D1B5626F38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

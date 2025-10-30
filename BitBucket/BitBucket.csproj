@@ -11,12 +11,4 @@
     <ProjectReference Include="..\Utility\Utility.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="BranchQuery\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
-  </ItemGroup>
-
 </Project>

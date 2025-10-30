@@ -1408,19 +1408,19 @@
     </Style>
 
     <!--ListView style-->
-    <Style TargetType="{x:Type ListView}">
-        <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+    <!--<Style TargetType="{x:Type ListView}" BasedOn="{StaticResource MahApps.Styles.ListView}">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="SelectionMode" Value="Single"/>
-    </Style>
+    </Style>-->
 
     <!--Datagrid style-->
-    <Style TargetType="{x:Type DataGrid}">
-        <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+    <!--<Style TargetType="{x:Type DataGrid}" BasedOn="{StaticResource MahApps.Styles.DataGrid}">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="SelectionMode" Value="Single"/>
         <Setter Property="SelectionUnit" Value="FullRow"/>
-    </Style>
+    </Style>-->
 
     <!--RadioButton style-->
     <Style TargetType="{x:Type RadioButton}" x:Key="{x:Type RadioButton}">

@@ -42,5 +42,20 @@
             get => this.GetValue(() => this.id);
             set => this.SetValue(() => this.id, value);
         }
+        public string displayId
+        {
+            get => this.GetValue(() => this.displayId);
+            set => this.SetValue(() => this.displayId, value);
+        }
+        public string latestCommit
+        {
+            get => this.GetValue(() => this.latestCommit);
+            set => this.SetValue(() => this.latestCommit, value);
+        }
+        public void UpdateTag(Tag source)
+        {
+            displayId = source.displayId;
+            latestCommit = source.latestCommit;
+        }
     }
 }

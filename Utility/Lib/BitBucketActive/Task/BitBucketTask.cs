@@ -43,7 +43,7 @@ namespace Utility.Lib.BitBucketActive.Task
                 _ea.GetEvent<BranchSelectedChanged>().Publish(Branch);
             }
         }
-        public Tag LatestTag
+        public Commit LatestTag
         {
             get => this.GetValue(() => LatestTag);
             set => this.SetValue(() => LatestTag, value);
@@ -65,14 +65,14 @@ namespace Utility.Lib.BitBucketActive.Task
         {
             Branch.CopyProperties(source);
         }
-        public void Update(Tag source)
+        public void Update(Commit source)
         {
             LatestTag.CopyProperties(source);
         }
 
         public bool CanGetNextTag()
         {
-            return Project!=null && Branch!=null && Repository!=null;
+            return Project != null && Branch != null && Repository != null;
         }
         public BitBucketTask() : this(null)
         {

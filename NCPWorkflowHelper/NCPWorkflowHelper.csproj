@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IssueListModule\Repositories.csproj" />
+    <ProjectReference Include="..\Repositories\Repositories.csproj" />
     <ProjectReference Include="..\UIs\UIs.csproj" />
     <ProjectReference Include="..\UserAccountModule\UserAccountModule.csproj" />
     <ProjectReference Include="..\Utility\Utility.csproj" />
