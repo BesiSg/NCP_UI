@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Handlers\Handlers.csproj" />
+    <ProjectReference Include="..\BitBucket\BitBucket.csproj" />
     <ProjectReference Include="..\UIs\UIs.csproj" />
     <ProjectReference Include="..\Utility\Utility.csproj" />
   </ItemGroup>

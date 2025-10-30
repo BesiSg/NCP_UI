@@ -1,6 +1,5 @@
 ﻿using BitBucket;
 using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
 using Utility;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketActive.Task;
@@ -29,14 +28,14 @@ namespace RepositoriesModule.ViewModels
         private string repositorykey => Form?.Project?.key;
         private string branchkey => $"{Form?.Project?.key} {Form?.Repository?.slug}";
         private string tagkey => $"{Form?.Project?.key} {Form?.Repository?.slug} {Form?.Branch?.displayId}";
-        public Tag Selected
+        public Commit Selected
         {
             get => this.GetValue(() => this.Selected);
             set
             {
                 if (Selected?.Equals(value) == true) return;
                 this.SetValue(() => this.Selected, value);
-                _ea.GetEvent<TagSelectedChanged>().Publish(Selected);
+                _ea.GetEvent<CommitSelectedChanged>().Publish(Selected);
             }
         }
         private BitBucketTagHandler _tagHandler;
@@ -62,7 +61,7 @@ namespace RepositoriesModule.ViewModels
             UpdateRepository();
             UpdateBranch();
 
-            _tagHandler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, TagDatasetHandler.Get, CommitDatasetHandler.Get);
+            _tagHandler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, CommitDatasetHandler.Get);
 
             GetNextTagCommand = new DelegateCommand(() => GetNextTag());
             SaveDataCommand = new DelegateCommand(() => SaveData());
@@ -137,11 +136,12 @@ namespace RepositoriesModule.ViewModels
 
         private void GetNextTag()
         {
-            var result= _tagHandler.GetLatestTagAndNext(Form.Project?.key, Form.Repository?.name, Form.Branch?.displayId);
+            var result = _tagHandler.GetLatestTagAndNext(Form.Project?.key, Form.Repository?.name, Form.Branch?.displayId);
             Form.LatestTag = result.Item1;
             Form.NextTag = result.Item2;
+            Selected = result.Item1;
         }
-        
-        private bool CanGetNextTag()=>Form.CanGetNextTag();
+
+        private bool CanGetNextTag() => Form.CanGetNextTag();
     }
 }
