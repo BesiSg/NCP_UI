@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Utility;
 using Utility.Lib.BitBucketRepositories;
+using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.UserAccount;
 
@@ -17,6 +18,7 @@ namespace NCPWorkflowHelper.ViewModels
         private SettingHandler<BitBucketStorage<Repository>> RepositoryDataHandler { get; set; }
         private SettingHandler<BitBucketStorage<Commit>> CommitDataHandler { get; set; }
         private SettingHandler<BitBucketStorage<Tag>> TagDataHandler { get; set; }
+        private SettingHandler<PatchFilesStorage> PatchDataHandler { get; set; }
         string StartupPath = AppDomain.CurrentDomain.BaseDirectory;
         string UserAccount_Filename = "Data\\UserAcc.xml";
         string ProjectDataset_Filename = "Data\\ProjectDataset.xml";
@@ -24,7 +26,8 @@ namespace NCPWorkflowHelper.ViewModels
         string CommitDataset_Filename = "Data\\CommitDataset.xml";
         string BranchDataset_Filename = "Data\\BranchDataset.xml";
         string TagDataset_Filename = "Data\\TagDataset.xml";
-        public MainWindowViewModel(SettingHandler<UserAccount> useraccountHandler, SettingHandler<BitBucketStorage<Project>> projectDataHandler, SettingHandler<BitBucketStorage<Branch>> branchDataHandler, SettingHandler<BitBucketStorage<Repository>> repositoryDataHandler, SettingHandler<BitBucketStorage<Commit>> commitDataHandler, SettingHandler<BitBucketStorage<Tag>> tagDataHandler)
+        string PatchDataset_Filename = "Data\\PatchDataset.xml";
+        public MainWindowViewModel(SettingHandler<UserAccount> useraccountHandler, SettingHandler<BitBucketStorage<Project>> projectDataHandler, SettingHandler<BitBucketStorage<Branch>> branchDataHandler, SettingHandler<BitBucketStorage<Repository>> repositoryDataHandler, SettingHandler<BitBucketStorage<Commit>> commitDataHandler, SettingHandler<BitBucketStorage<Tag>> tagDataHandler, SettingHandler<PatchFilesStorage> patchDataHandler)
         {
             UserAccountCfgHandler = useraccountHandler;
             ProjectDataHandler = projectDataHandler;
@@ -32,6 +35,7 @@ namespace NCPWorkflowHelper.ViewModels
             RepositoryDataHandler = repositoryDataHandler;
             CommitDataHandler = commitDataHandler;
             TagDataHandler = tagDataHandler;
+            PatchDataHandler = patchDataHandler;
 
             UserAccountCfgHandler.SetPathnLoad(Path.Combine(StartupPath, UserAccount_Filename));
             ProjectDataHandler.SetPathnLoad(Path.Combine(StartupPath, ProjectDataset_Filename));
@@ -39,6 +43,7 @@ namespace NCPWorkflowHelper.ViewModels
             CommitDataHandler.SetPathnLoad(Path.Combine(StartupPath, CommitDataset_Filename));
             BranchDataHandler.SetPathnLoad(Path.Combine(StartupPath, BranchDataset_Filename));
             TagDataHandler.SetPathnLoad(Path.Combine(StartupPath, TagDataset_Filename));
+            PatchDataHandler.SetPathnLoad(Path.Combine(StartupPath, PatchDataset_Filename));
 
             SaveDataCommand = new DelegateCommand(() => SaveData());
             ImportDataCommand = new DelegateCommand(() => ImportData());

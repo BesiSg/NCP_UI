@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PatchViewer\PatchViewer.csproj" />
     <ProjectReference Include="..\Repositories\Repositories.csproj" />
     <ProjectReference Include="..\UIs\UIs.csproj" />
     <ProjectReference Include="..\UserAccountModule\UserAccountModule.csproj" />

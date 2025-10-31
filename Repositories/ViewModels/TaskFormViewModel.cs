@@ -88,6 +88,7 @@ namespace RepositoriesModule.ViewModels
         private void UpdateProject()
         {
             Projects.Clear();
+            if (!ProjectDatasetHandler.Get.Storage.ContainsKey(projectkey)) return;
             Projects.AddRange(ProjectDatasetHandler.Get.Storage[projectkey]);
         }
 

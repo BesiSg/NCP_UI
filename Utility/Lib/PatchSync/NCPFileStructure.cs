@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using Utility;
 
 namespace Utility.PatchSync
 {
@@ -14,18 +13,18 @@ namespace Utility.PatchSync
         public const string localDevelop = $"{localFNGAMS}\\{develop}";
         public const string networkDevelop = $"{networkFNGAMS}\\{develop}";
 
-        private PatchSync patchSync = new PatchSync();
-        public static async Task<IEnumerable<string>> GetFileAsync(string folder)
+        public static IEnumerable<string> GetFiles(string folder)
         {
-            return GetFileAsync(folder, "").Result;
+            return GetFiles(folder, "");
         }
-        public static async Task<IEnumerable<string>> GetFileAsync(string folder, string extension)
+        public static IEnumerable<string> GetFiles(string folder, string extension)
         {
             var list = new List<string>();
             if (!Directory.Exists(folder)) return list;
             return Directory.GetFiles(folder, extension).ToList();
         }
-        public static async Task<IEnumerable<string>> GetFoldersAsync(string folder)
+
+        public static IEnumerable<string> GetFolders(string folder)
         {
             var list = new List<string>();
             if (!Directory.Exists(folder)) return list;

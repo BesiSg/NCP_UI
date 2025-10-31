@@ -1,6 +1,7 @@
 ﻿using NCPWorkflowHelper.Views;
 using System.Windows;
 using Utility.Lib.BitBucketRepositories;
+using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.UserAccount;
 
@@ -26,12 +27,14 @@ namespace NCPWorkflowHelper
             containerRegistry.RegisterSingleton<SettingHandler<BitBucketStorage<Commit>>>();
             containerRegistry.RegisterSingleton<SettingHandler<BitBucketStorage<Tag>>>();
             containerRegistry.RegisterSingleton<SettingHandler<UserAccount>>();
+            containerRegistry.RegisterSingleton<SettingHandler<PatchFilesStorage>>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
         {
             moduleCatalog.AddModule<RepositoriesModule.RepositoriesModule>();
             moduleCatalog.AddModule<UserAccountModule.UserAccountModule>();
+            moduleCatalog.AddModule<PatchViewerModule.PatchViewerModule>();
         }
     }
 

@@ -22,6 +22,9 @@
             <TabItem Header="Fetch branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
                 <ContentControl prism:RegionManager.RegionName="FetchBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
             </TabItem>
+            <TabItem Header="Patch Viewer" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                <ContentControl prism:RegionManager.RegionName="PatchViewerRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+            </TabItem>
             <TabItem Header="Commit branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
                 <ContentControl prism:RegionManager.RegionName="CommitBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
             </TabItem>
