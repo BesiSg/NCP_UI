@@ -10,7 +10,7 @@ namespace FilesHandler.Develop
         private string _destinationFolder;
         private string _sourceFile;
         private string _destinationFile;
-        private string _patchnamewithoutextension;
+        private PatchFilesStorage fileStorage;
         public bool DestinationPatchNotEmpty
         {
             get => GetValue(() => DestinationPatchNotEmpty);
@@ -25,6 +25,11 @@ namespace FilesHandler.Develop
         {
             get => GetValue(() => PatchName);
             set => SetValue(() => PatchName, value);
+        }
+        public string PatchNameWithoutExtension
+        {
+            get => GetValue(() => PatchNameWithoutExtension);
+            set => SetValue(() => PatchNameWithoutExtension, value);
         }
         public double ExtractProgress
         {
@@ -48,10 +53,11 @@ namespace FilesHandler.Develop
                 ClearErrorFlags();
                 try
                 {
+                    if (DestinationPatchNotEmpty) return Result;
                     if (!File.Exists(_sourceFile)) ThrowError("Source file does not exist.");
-                    if (Directory.Exists($"{_destinationFolder}\\{_patchnamewithoutextension}"))
+                    if (Directory.Exists($"{_destinationFolder}\\{PatchNameWithoutExtension}"))
                     {
-                        if (Directory.GetFiles($"{_destinationFolder}\\{_patchnamewithoutextension}").Length > 0)
+                        if (Directory.GetFiles($"{_destinationFolder}\\{PatchNameWithoutExtension}").Length > 0)
                             ThrowError("Folder exist and not empty");
                     }
                     else
@@ -132,16 +138,57 @@ namespace FilesHandler.Develop
             }
             return Result;
         }
-        private ErrorResult PopulateFiles()
+        public ErrorResult PopulateFiles()
         {
             this.ClearErrorFlags();
-            string rootPath = $"{_destinationFolder}\\{_patchnamewithoutextension}";
+            string rootPath = $"{_destinationFolder}\\{PatchNameWithoutExtension}";
 
             try
             {
                 // Get all directories including subdirectories
-                PatchFiles = Directory.GetDirectories(rootPath, "*", SearchOption.AllDirectories).ToList();
+                if (!Directory.Exists(rootPath))return Result;
+                var directories = Directory.GetDirectories(rootPath, "*", SearchOption.AllDirectories).ToList();
+                var dictionaryshortened = new Dictionary<string,string>();
+                var toignore = new HashSet<string>();
+                directories.ForEach(name => dictionaryshortened[name.Replace(rootPath,"")]= Path.GetFileName(name));
+                foreach(var shortenedpair in dictionaryshortened)
+                {
+                    if (shortenedpair.Value == string.Empty) continue;
+                    var parts= shortenedpair.Value.Split('_');
+                    if (parts.Length >= 4)
+                    {
+                        bool isVersionFormat = char.IsDigit(parts[0].LastOrDefault()) & char.IsDigit(parts[1].FirstOrDefault()) & char.IsDigit(parts[2].FirstOrDefault());
+                        if (isVersionFormat)
+                        {
+                            var todeletepath = shortenedpair.Key;
+                            dictionaryshortened[todeletepath] = string.Empty;
+                            toignore.Add(rootPath+shortenedpair.Key);
+                            foreach (var shortenedpairagain in dictionaryshortened)
+                            {
+                                if (shortenedpairagain.Value == string.Empty) continue;
+                                if(shortenedpairagain.Key.Contains(todeletepath))
+                                {
+                                    dictionaryshortened[shortenedpairagain.Key] = string.Empty;
+                                    toignore.Add(rootPath + shortenedpairagain.Key);
+                                }
 
+                            }    
+                        }
+                    }
+                }
+                PatchFiles.Clear();
+                directories.Add(rootPath);
+                foreach (var directory in directories)
+                {
+                    if (toignore.Contains(directory)) continue;
+                    var files = Directory.GetFiles(directory, "*", SearchOption.TopDirectoryOnly).ToList();
+                    PatchFiles.AddRange(files);
+                }
+
+                if (!fileStorage.Storage.ContainsKey(PatchNameWithoutExtension))
+                    fileStorage.Storage[PatchNameWithoutExtension] = new List<string>();
+                fileStorage.Storage[PatchNameWithoutExtension].Clear();
+                fileStorage.Storage[PatchNameWithoutExtension].AddRange(PatchFiles);
             }
             catch (Exception ex)
             {
@@ -156,7 +203,7 @@ namespace FilesHandler.Develop
                 ClearErrorFlags();
                 try
                 {
-                    DestinationPatchNotEmpty = Directory.Exists($"{_destinationFolder}\\{_patchnamewithoutextension}") && !Directory.EnumerateFileSystemEntries($"{_destinationFolder}\\{_patchnamewithoutextension}").Any();
+                    DestinationPatchNotEmpty = Directory.Exists($"{_destinationFolder}\\{PatchNameWithoutExtension}") && Directory.EnumerateFileSystemEntries($"{_destinationFolder}\\{PatchNameWithoutExtension}").Any();
                 }
                 catch (Exception ex)
                 {
@@ -170,11 +217,16 @@ namespace FilesHandler.Develop
             _sourceFolder = sourcefolder;
             _destinationFolder = destinationfolder;
             PatchName = filename;
-            _patchnamewithoutextension = Path.GetFileNameWithoutExtension(filename);
+            PatchNameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
             _sourceFile = $"{_sourceFolder}\\{PatchName}";
             _destinationFile = $"{_destinationFolder}\\{PatchName}";
-            if (filestorage.Storage.ContainsKey(PatchName))
-                PatchFiles = filestorage.Storage[PatchName];
+            fileStorage = filestorage;
+            PatchFiles = new List<string>();
+            if (fileStorage.Storage.ContainsKey(PatchNameWithoutExtension))
+            {
+                PatchFiles.Clear();
+                PatchFiles.AddRange(fileStorage.Storage[PatchNameWithoutExtension]);
+            }
             else
                 PatchFiles = new List<string>();
         }

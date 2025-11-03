@@ -15,7 +15,10 @@
             <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}">
                 <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
             </Button>
-            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding TransferandUnzipCommand}">
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Transfer and Unzip" Command="{Binding TransferandUnzipCommand}">
+                <Image Source="/UIs;component/Resource/Diagnostics.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Populate" Command="{Binding PopulateCommand}">
                 <Image Source="/UIs;component/Resource/Diagnostics.png" Style="{StaticResource ImgBtn_W25H25}"/>
             </Button>
         </StackPanel>
@@ -23,7 +26,7 @@
                                 AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="FullRow" EnableRowVirtualization="True" GridLinesVisibility="All" 
                                 ColumnHeaderHeight="30" RowHeight="25" SelectedItem="{Binding Selected}" Height="780">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Patch" Binding="{Binding PatchName}" IsReadOnly="True" Width="150" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
+                <DataGridTextColumn Header="Patch" Binding="{Binding PatchNameWithoutExtension}" IsReadOnly="True" Width="150" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
                 <DataGridCheckBoxColumn Header="NotEmpty" Binding="{Binding DestinationPatchNotEmpty}" IsReadOnly="True" Width="100" CanUserSort="True" CanUserResize="True" CanUserReorder="False"/>
                 <DataGridTextColumn Header="Copy" Binding="{Binding CopyProgress, StringFormat=N2}" IsReadOnly="True" Width="60" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
                 <DataGridTextColumn Header="Extract" Binding="{Binding ExtractProgress, StringFormat=N2}" IsReadOnly="True" Width="60" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />

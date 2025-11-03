@@ -2,6 +2,8 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
+using System.Threading.Tasks;
+using Utility;
 using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
 using Utility.PatchSync;
@@ -15,7 +17,18 @@ namespace PatchViewerModule.ViewModels
         public DelegateCommand ImportDataCommand { get; private set; }
         public DelegateCommand SaveDataCommand { get; private set; }
         public DelegateCommand TransferandUnzipCommand { get; private set; }
+        public DelegateCommand PopulateCommand { get; private set; }
+        public bool CanTransferandUnzip
+        {
+            get => GetValue(() => CanTransferandUnzip);
+            set
+            {
+                SetValue(() => CanTransferandUnzip, value);
+                TransferandUnzipCommand.RaiseCanExecuteChanged();
+            }
+        }
 
+        private bool CanTransferandUnzipCommand() => CanTransferandUnzip;
         public PatchListViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg) : base(ea)
         {
             Content.CollectionChanged += Content_CollectionChanged;
@@ -23,13 +36,37 @@ namespace PatchViewerModule.ViewModels
             dataset.Get.Storage.Keys.ToList().ForEach(patchname => Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, patchname, dataset.Get)));
             ImportDataCommand = new DelegateCommand(() => ImportDataAsync());
             SaveDataCommand = new DelegateCommand(() => SaveData());
-            TransferandUnzipCommand = new DelegateCommand(() => TransferandUnzip());
+            TransferandUnzipCommand = new DelegateCommand(() => TransferandUnzip(), ()=> CanTransferandUnzipCommand());
+            PopulateCommand = new DelegateCommand(() => Populate());
+            CanTransferandUnzip = true;
+        }
+
+        private async void Populate()
+        {
+            var tasks = new List<Func<Task>>();
+            foreach (var patchtask in Content)
+            {
+                tasks.Add(async () =>
+                {
+                    await Task.Run(() => patchtask.PopulateFiles()); // simulate async work
+                });
+            }
+            await Util.RunTasksWithLimitedConcurrency(tasks, 5);
         }
 
         private async void TransferandUnzip()
         {
-            //Content.ToList().ForEach(async patch => await patch.TransferandUnzip());
-            await Content[0].TransferandUnzip();
+            CanTransferandUnzip = false;
+            var tasks = new List<Func<Task>>();
+            foreach (var patchtask in Content)
+            {
+                tasks.Add(async () =>
+                {
+                    await patchtask.TransferandUnzip(); // simulate async work
+                });
+            }
+            await Util.RunTasksWithLimitedConcurrency(tasks, 3);
+            CanTransferandUnzip = true;
         }
 
         private void Content_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -44,7 +81,7 @@ namespace PatchViewerModule.ViewModels
 
         private void SaveData()
         {
-
+            dataset.Save();
         }
         private void ImportDataAsync()
         {

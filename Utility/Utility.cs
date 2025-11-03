@@ -39,7 +39,6 @@ namespace Utility
                                          typeof(BindingProxy));
     }
 
-
     [Serializable]
     public abstract class aSaveable : BaseUtility
     {
@@ -473,6 +472,35 @@ namespace Utility
 
     public class Util
     {
+        public static async Task RunTasksWithLimitedConcurrency(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
+        {
+            using (var semaphore = new SemaphoreSlim(maxDegreeOfParallelism))
+            {
+                var runningTasks = new List<Task>();
+
+                foreach (var taskFactory in taskFactories)
+                {
+                    await semaphore.WaitAsync();
+
+                    // Start the task
+                    var task = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await taskFactory();
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    });
+
+                    runningTasks.Add(task);
+                }
+
+                await Task.WhenAll(runningTasks);
+            }
+        }
         public static void LoadAssemblies(string src)
         {
             var files = Directory.GetFiles(src, "HiPA.*.dll");
