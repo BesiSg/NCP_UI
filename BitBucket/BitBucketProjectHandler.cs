@@ -44,7 +44,7 @@ namespace BitBucket
                 }
                 catch (Exception ex)
                 {
-                    CatchException(ex);
+                    CatchAndPromptErr(ex);
                 }
             }
             lock (_dataset)

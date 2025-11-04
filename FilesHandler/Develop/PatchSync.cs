@@ -1,6 +1,9 @@
 ﻿using System.IO.Compression;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Utility;
 using Utility.Lib.PatchSync;
+using Utility.PatchSync;
 
 namespace FilesHandler.Develop
 {
@@ -11,6 +14,7 @@ namespace FilesHandler.Develop
         private string _sourceFile;
         private string _destinationFile;
         private PatchFilesStorage fileStorage;
+        private Logger logger = new Logger($"{Directory.GetCurrentDirectory()}\\Data\\PatchSyncLogger.txt");
         public bool DestinationPatchNotEmpty
         {
             get => GetValue(() => DestinationPatchNotEmpty);
@@ -68,7 +72,7 @@ namespace FilesHandler.Develop
                 }
                 catch (Exception e)
                 {
-                    CatchException(e);
+                    CatchAndPromptErr(e);
                 }
                 return Result;
             });
@@ -106,7 +110,7 @@ namespace FilesHandler.Develop
             }
             catch (Exception e)
             {
-                CatchException(e);
+                CatchAndPromptErr(e);
             }
             return Result;
         }
@@ -134,7 +138,7 @@ namespace FilesHandler.Develop
             }
             catch (Exception ex)
             {
-                CatchException(ex);
+                CatchAndPromptErr(ex);
             }
             return Result;
         }
@@ -146,15 +150,15 @@ namespace FilesHandler.Develop
             try
             {
                 // Get all directories including subdirectories
-                if (!Directory.Exists(rootPath))return Result;
+                if (!Directory.Exists(rootPath)) return Result;
                 var directories = Directory.GetDirectories(rootPath, "*", SearchOption.AllDirectories).ToList();
-                var dictionaryshortened = new Dictionary<string,string>();
+                var dictionaryshortened = new Dictionary<string, string>();
                 var toignore = new HashSet<string>();
-                directories.ForEach(name => dictionaryshortened[name.Replace(rootPath,"")]= Path.GetFileName(name));
-                foreach(var shortenedpair in dictionaryshortened)
+                directories.ForEach(name => dictionaryshortened[name.Replace(rootPath, "")] = Path.GetFileName(name));
+                foreach (var shortenedpair in dictionaryshortened)
                 {
                     if (shortenedpair.Value == string.Empty) continue;
-                    var parts= shortenedpair.Value.Split('_');
+                    var parts = shortenedpair.Value.Split('_');
                     if (parts.Length >= 4)
                     {
                         bool isVersionFormat = char.IsDigit(parts[0].LastOrDefault()) & char.IsDigit(parts[1].FirstOrDefault()) & char.IsDigit(parts[2].FirstOrDefault());
@@ -162,17 +166,17 @@ namespace FilesHandler.Develop
                         {
                             var todeletepath = shortenedpair.Key;
                             dictionaryshortened[todeletepath] = string.Empty;
-                            toignore.Add(rootPath+shortenedpair.Key);
+                            toignore.Add(rootPath + shortenedpair.Key);
                             foreach (var shortenedpairagain in dictionaryshortened)
                             {
                                 if (shortenedpairagain.Value == string.Empty) continue;
-                                if(shortenedpairagain.Key.Contains(todeletepath))
+                                if (shortenedpairagain.Key.Contains(todeletepath))
                                 {
                                     dictionaryshortened[shortenedpairagain.Key] = string.Empty;
                                     toignore.Add(rootPath + shortenedpairagain.Key);
                                 }
 
-                            }    
+                            }
                         }
                     }
                 }
@@ -182,9 +186,15 @@ namespace FilesHandler.Develop
                 {
                     if (toignore.Contains(directory)) continue;
                     var files = Directory.GetFiles(directory, "*", SearchOption.TopDirectoryOnly).ToList();
-                    PatchFiles.AddRange(files);
-                }
+                    var shortened = new List<string>();
+                    files.ForEach(name =>
+                    {
+                        if (!name.Contains(".zip", StringComparison.OrdinalIgnoreCase) && !name.Contains(".7z", StringComparison.OrdinalIgnoreCase))
+                            shortened.Add(name.Replace(rootPath, ""));
+                    });
 
+                    PatchFiles.AddRange(shortened);
+                }
                 if (!fileStorage.Storage.ContainsKey(PatchNameWithoutExtension))
                     fileStorage.Storage[PatchNameWithoutExtension] = new List<string>();
                 fileStorage.Storage[PatchNameWithoutExtension].Clear();
@@ -192,8 +202,28 @@ namespace FilesHandler.Develop
             }
             catch (Exception ex)
             {
-                CatchException(ex);
+                CatchAndPromptErr(ex);
             }
+            return Result;
+        }
+        public ErrorResult Validate()
+        {
+            var localrootPath = $"{_destinationFolder}\\{PatchNameWithoutExtension}";
+            var networkrootPath = $"{NCPFileStructure.networkDevelop}\\{PatchNameWithoutExtension}";
+            var listoffilestovalidate = fileStorage.Storage[PatchNameWithoutExtension];
+            var totalcount = listoffilestovalidate.Count;
+            var currcount = 0;
+            foreach (var file in listoffilestovalidate)
+            {
+                var same = Hash.ComputeFileHash(localrootPath + file) == Hash.ComputeFileHash(networkrootPath + file);
+                if (!same)
+                {
+                    logger.Log($"{localrootPath + file}, {networkrootPath + file}");
+                }
+                currcount++;
+                ValidateProgress = ((double)currcount / totalcount) * 100;
+            }
+
             return Result;
         }
         public Task<ErrorResult> CheckIfEmpty()
@@ -207,7 +237,7 @@ namespace FilesHandler.Develop
                 }
                 catch (Exception ex)
                 {
-                    CatchException(ex);
+                    CatchAndPromptErr(ex);
                 }
                 return Result;
             });

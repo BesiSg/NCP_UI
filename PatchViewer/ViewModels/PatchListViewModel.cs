@@ -18,17 +18,37 @@ namespace PatchViewerModule.ViewModels
         public DelegateCommand SaveDataCommand { get; private set; }
         public DelegateCommand TransferandUnzipCommand { get; private set; }
         public DelegateCommand PopulateCommand { get; private set; }
+        public DelegateCommand ValidateCommand { get; private set; }
         public bool CanTransferandUnzip
         {
             get => GetValue(() => CanTransferandUnzip);
             set
             {
                 SetValue(() => CanTransferandUnzip, value);
-                TransferandUnzipCommand.RaiseCanExecuteChanged();
+                //TransferandUnzipCommand.RaiseCanExecuteChanged();
             }
         }
-
+        public bool CanPopulate
+        {
+            get => GetValue(() => CanPopulate);
+            set
+            {
+                SetValue(() => CanPopulate, value);
+                //PopulateCommand.RaiseCanExecuteChanged();
+            }
+        }
+        public bool CanValidate
+        {
+            get => GetValue(() => CanValidate);
+            set
+            {
+                SetValue(() => CanValidate, value);
+                //PopulateCommand.RaiseCanExecuteChanged();
+            }
+        }
         private bool CanTransferandUnzipCommand() => CanTransferandUnzip;
+        private bool CanPopulateCommand() => CanPopulate;
+        private bool CanValidateCommand() => CanValidate;
         public PatchListViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg) : base(ea)
         {
             Content.CollectionChanged += Content_CollectionChanged;
@@ -37,21 +57,39 @@ namespace PatchViewerModule.ViewModels
             ImportDataCommand = new DelegateCommand(() => ImportDataAsync());
             SaveDataCommand = new DelegateCommand(() => SaveData());
             TransferandUnzipCommand = new DelegateCommand(() => TransferandUnzip(), ()=> CanTransferandUnzipCommand());
-            PopulateCommand = new DelegateCommand(() => Populate());
+            PopulateCommand = new DelegateCommand(() => Populate(), () => CanPopulateCommand());
+            ValidateCommand = new DelegateCommand(()=> ValidateAsync(), () => CanValidateCommand());
             CanTransferandUnzip = true;
+            CanPopulate = true;
+            CanValidate = true;
         }
-
         private async void Populate()
         {
+            CanPopulate = false;
             var tasks = new List<Func<Task>>();
             foreach (var patchtask in Content)
             {
                 tasks.Add(async () =>
                 {
-                    await Task.Run(() => patchtask.PopulateFiles()); // simulate async work
+                    await Task.Run(()=> patchtask.PopulateFiles()); // simulate async work
                 });
             }
-            await Util.RunTasksWithLimitedConcurrency(tasks, 5);
+            await Util.RunTasksWithLimitedConcurrency(tasks, 3);
+            CanPopulate = true;
+        }
+        private async void ValidateAsync()
+        {
+            CanValidate = false;
+            var tasks = new List<Func<Task>>();
+            foreach (var patchtask in Content)
+            {
+                tasks.Add(async () =>
+                {
+                    await Task.Run(() => patchtask.Validate()); // simulate async work
+                });
+            }
+            await Util.RunTasksWithLimitedConcurrency(tasks, 3);
+            CanValidate = true;
         }
 
         private async void TransferandUnzip()

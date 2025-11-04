@@ -16,10 +16,13 @@
                 <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
             </Button>
             <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Transfer and Unzip" Command="{Binding TransferandUnzipCommand}">
-                <Image Source="/UIs;component/Resource/Diagnostics.png" Style="{StaticResource ImgBtn_W25H25}"/>
+                <Image Source="/UIs;component/Resource/Recipe_Copy.png" Style="{StaticResource ImgBtn_W25H25}"/>
             </Button>
             <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Populate" Command="{Binding PopulateCommand}">
                 <Image Source="/UIs;component/Resource/Diagnostics.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Validate" Command="{Binding ValidateCommand}">
+                <Image Source="/UIs;component/Resource/Recipe_Reload.png" Style="{StaticResource ImgBtn_W25H25}"/>
             </Button>
         </StackPanel>
         <DataGrid Background="LightGray" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" ItemsSource="{Binding Content}" CanUserDeleteRows="False"

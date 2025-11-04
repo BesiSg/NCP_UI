@@ -1,5 +1,6 @@
 
 using OfficeOpenXml;
+using Prism.Common;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -8,6 +9,7 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
@@ -215,6 +217,25 @@ namespace Utility
             }
 
             string propertyName = GetPropertyName(lambdaExpression);
+            if (propertyName.Contains("Can"))
+            {
+                var CommandName = propertyName.Replace("Can", "") + "Command";
+                var type = this.GetType();
+                var commandpropertyinfo = type.GetProperty(CommandName);
+                if (commandpropertyinfo != null)
+                {
+                    var commandInstance = commandpropertyinfo.GetValue(this);
+                    MethodInfo executeMethod = commandInstance.GetType().GetMethod("RaiseCanExecuteChanged");
+                    if (executeMethod != null)
+                    {
+                        executeMethod.Invoke(commandInstance, null);
+                    }
+                }
+
+            }
+
+
+
             var storedValue = this.GetValue<T>(propertyName);
 
             if (compareBeforeTrigger)
@@ -263,6 +284,43 @@ namespace Utility
         }
         #endregion
     }
+    public class WriteText : BaseUtility
+    {
+        public static Task Log(string filename, string content)
+        {
+            return Task.Run(() =>
+            {
+                using (StreamWriter writer = new StreamWriter(filename, append: true))
+                {
+                    writer.WriteLine(content);
+                }
+            });
+        }
+        public static Dictionary<string, object> locker = new Dictionary<string, object>();
+    }
+    public class Logger(string filename) : BaseUtility
+    {
+        private string fileName = filename;
+        private object objectlocker
+        {
+            get
+            {
+                if (!WriteText.locker.ContainsKey(fileName))
+                    WriteText.locker[fileName] = new object();
+                return WriteText.locker[fileName];
+            }
+        }
+        public Task Log(string content)
+        {
+            return Task.Run(() =>
+            {
+                lock (objectlocker)
+                {
+                    WriteText.Log(fileName, content).Wait();
+                }
+            });
+        }
+    }
     public abstract class B_Utility : BindableBase, System.ICloneable
     {
         #region Errorformatting
@@ -298,10 +356,6 @@ namespace Utility
         protected void CatchException(Exception ex)
         {
             this.Result.Set(this.Result.EClass == ErrorClass.OK ? ErrorClass.E6 : this.Result.EClass, this.FormatErrMsg2(null, ex));
-        }
-        protected void CatchException(ErrorClass eclass, string err)
-        {
-            this.Result.Set(eclass, err);
         }
         protected void CatchAndPromptErr(Exception ex)
         {
@@ -417,6 +471,22 @@ namespace Utility
         E6,//an error has occur, unclassified error, machine stop
         F,//speak to manufacturer
     }
+
+
+    public class Hash
+    {
+        public static string ComputeFileHash(string filePath)
+        {
+            using (var sha512 = SHA512.Create())
+            using (var stream = File.OpenRead(filePath))
+            {
+                byte[] hashBytes = sha512.ComputeHash(stream);
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+            }
+        }
+    }
+
+
 
     public class FileStreamHandler : BaseUtility
     {

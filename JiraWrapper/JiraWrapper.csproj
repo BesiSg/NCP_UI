@@ -9,6 +9,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
     <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
