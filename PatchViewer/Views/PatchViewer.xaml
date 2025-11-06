@@ -1,0 +1,62 @@
+<UserControl x:Class="PatchViewerModule.Views.PatchViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             xmlns:utility="clr-namespace:Utility;assembly=Utility" 
+             xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+    <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,10,0,10">
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Transfer and Unzip" Command="{Binding TransferandUnzipCommand}">
+                <Image Source="/UIs;component/Resource/Recipe_Copy.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Populate" Command="{Binding PopulateCommand}">
+                <Image Source="/UIs;component/Resource/Diagnostics.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Validate" Command="{Binding ValidateCommand}">
+                <Image Source="/UIs;component/Resource/Recipe_Reload.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="GetUnitCFGInfo" Command="{Binding GetUnitCFGInfoCommand}">
+                <Image Source="/UIs;component/Resource/Recipe_Reload.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Open Network Folder" Command="{Binding OpenNetworkFolderCommand}">
+                <Image Source="/UIs;component/Resource/Recipe_Reload.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+            <Button Height="30" Width="30" Margin="10,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Open Local Folder" Command="{Binding OpenLocalFolderCommand}">
+                <Image Source="/UIs;component/Resource/Recipe_Reload.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
+        </StackPanel>
+        <StackPanel Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <Label Content="Patch Name" Width="80"></Label>
+                <Label Content="{Binding Selected.PatchNameWithoutExtension}" Style="{StaticResource LB_ItemData}" Width="120"/>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <DataGrid Background="LightGray" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" ItemsSource="{Binding Standard}" CanUserDeleteRows="False"
+                                AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="FullRow" EnableRowVirtualization="True" GridLinesVisibility="All" SelectionMode="Single"
+                                ColumnHeaderHeight="30" RowHeight="25" Height="780">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Standard Files" Binding="{Binding}" IsReadOnly="True" Width="500" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <DataGrid Margin="10,0,0,0" Background="LightGray" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" ItemsSource="{Binding Difference}" CanUserDeleteRows="False"
+                                AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="FullRow" EnableRowVirtualization="True" GridLinesVisibility="All" SelectionMode="Single"
+                                ColumnHeaderHeight="30" RowHeight="25" Height="780">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Difference" Binding="{Binding}" IsReadOnly="True" Width="150" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <DataGrid Margin="10,0,0,0" Background="LightGray" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" ItemsSource="{Binding UnitCFG}" CanUserDeleteRows="False"
+                                AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="FullRow" EnableRowVirtualization="True" GridLinesVisibility="All" SelectionMode="Single"
+                                ColumnHeaderHeight="30" RowHeight="25" Height="780">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="UnitCFG" Binding="{Binding}" IsReadOnly="True" Width="150" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+    </StackPanel>
+
+</UserControl>

@@ -8,14 +8,14 @@ using Utility.Lib.UserAccount;
 
 namespace RepositoriesModule.ViewModels
 {
-    public abstract class ViewModelBase<Tbase> : BaseUtility
-        where Tbase : aSaveable
+    public abstract class ViewModelBase<Tbase> : ViewModelBase
+        where Tbase : BaseUtility
     {
         public ObservableCollection<Tbase> Content { get; set; } = new ObservableCollection<Tbase>();
         protected SettingHandler<UserAccount> UserAccountHandler;
         protected SettingHandler<BitBucketStorage<Tbase>> DatasetHandler;
-        public DelegateCommand ImportDataCommand { get; private set; }
-        public DelegateCommand SaveDataCommand { get; private set; }
+        public AsyncDelegateCommand ImportDataCommand { get; protected set; }
+        public AsyncDelegateCommand SaveDataCommand { get; protected set; }
         protected Project project = null;
         protected Repository repository = null;
         protected Branch branch = null;
@@ -46,8 +46,6 @@ namespace RepositoriesModule.ViewModels
             UserAccountHandler = userAccHandler;
             DatasetHandler = datasetcfg;
             DatasetHandler.Get.Changed += Changed;
-            ImportDataCommand = new DelegateCommand(async () => await ImportDataAsync());
-            SaveDataCommand = new DelegateCommand(() => SaveData());
             UpdateCollection();
             _ea.GetEvent<ProjectSelectedChanged>().Subscribe(ProjectReceived);
             _ea.GetEvent<RepositorySelectedChanged>().Subscribe(RepositoryReceived);
@@ -63,8 +61,8 @@ namespace RepositoriesModule.ViewModels
         protected abstract void BranchReceived(Branch message);
         protected abstract void ProjectReceived(Project message);
         protected abstract void RepositoryReceived(Repository message);
-        protected abstract void SaveData();
-        protected abstract Task ImportDataAsync();
+        protected abstract Task SaveData();
+        protected abstract Task ImportData();
         protected abstract void PublishEvent(Tbase selected);
     }
 }

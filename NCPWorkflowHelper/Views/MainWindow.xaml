@@ -14,28 +14,28 @@
             <it:InvokeCommandAction Command="{Binding OnClosingCommand}" />
         </it:EventTrigger>
     </it:Interaction.Triggers>
-    <StackPanel Orientation="Horizontal" Margin="0,10,10,0" >
-        <TabControl Margin="10">
-            <TabItem Header="User account" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                <ContentControl prism:RegionManager.RegionName="UserAccountRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-            </TabItem>
-            <TabItem Header="Fetch branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                <ContentControl prism:RegionManager.RegionName="FetchBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-            </TabItem>
-            <TabItem Header="Patch Viewer" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                <ContentControl prism:RegionManager.RegionName="PatchViewerRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-            </TabItem>
-            <TabItem Header="Commit branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                <ContentControl prism:RegionManager.RegionName="CommitBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-            </TabItem>
-        </TabControl>
-        <Button Height="30" Width="30" Margin="0,0,10,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Import" Command="{Binding ImportDataCommand}">
-            <Image Source="/Resource/Recipe_Load.png" Style="{StaticResource ImgBtn_W25H25}"/>
-        </Button>
-        <Button Height="30" Width="30" Margin="0,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}">
+    <Grid>
+        <Button Height="30" Width="30" Margin="10" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}" HorizontalAlignment="Right" VerticalAlignment="Top">
             <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
         </Button>
-    </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,10,10,0" >
+            <TabControl Margin="10">
+                <TabItem Header="User account" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                    <ContentControl prism:RegionManager.RegionName="UserAccountRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+                </TabItem>
+                <TabItem Header="Fetch branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                    <ContentControl prism:RegionManager.RegionName="FetchBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+                </TabItem>
+                <TabItem Header="Patch Viewer" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                    <ContentControl prism:RegionManager.RegionName="PatchViewerRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+                </TabItem>
+                <TabItem Header="Commit branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                    <ContentControl prism:RegionManager.RegionName="CommitBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+                </TabItem>
+            </TabControl>
+        </StackPanel>
+    </Grid>
+
     <!--<TabControl HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="10,0,10,10">
             <TabItem Header="Filters">
                 <FormUI:FilterList x:Name="FilterList" Margin="0" MouseLeave="FilterList_MouseLeave"/>

@@ -35,7 +35,7 @@
         }
     }
 
-    public class Commit : aSaveable
+    public class Commit : BaseUtility
     {
         public string id
         {

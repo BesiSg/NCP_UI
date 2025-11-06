@@ -29,7 +29,7 @@ namespace RepositoriesModule.ViewModels
         protected override async void ProjectReceived(Project message)
         {
             project = message;
-            if (AutoUpdateEnabled) await ImportDataAsync();
+            if (AutoUpdateEnabled) await ImportData();
             UpdateCollection();
         }
 
@@ -38,12 +38,12 @@ namespace RepositoriesModule.ViewModels
             Selected = repository;
         }
 
-        protected override void SaveData()
+        protected override async Task SaveData()
         {
-            DatasetHandler.Save();
+            await Task.Run(() => DatasetHandler.Save());
         }
 
-        protected override async Task ImportDataAsync()
+        protected override async Task ImportData()
         {
             if (project == null) return;
             await _handler.GetAllAsync(project.key);

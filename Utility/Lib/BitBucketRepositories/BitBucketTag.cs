@@ -15,7 +15,7 @@
         }
     }
 
-    public class Tag : aSaveable
+    public class Tag : BaseUtility
     {
         public string displayId
         {

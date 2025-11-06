@@ -1,113 +1,121 @@
-﻿using FilesHandler.Develop;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
-using System.Threading.Tasks;
 using Utility;
+using Utility.EventAggregator;
 using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
 using Utility.PatchSync;
 
 namespace PatchViewerModule.ViewModels
 {
-    public class PatchListViewModel : ViewModelBase
+    public class PatchListViewModel : ViewModelBase<PatchSync>
     {
         public ObservableCollection<PatchSync> Content { get; private set; } = new ObservableCollection<PatchSync>();
-        private SettingHandler<PatchFilesStorage> dataset;
-        public DelegateCommand ImportDataCommand { get; private set; }
-        public DelegateCommand SaveDataCommand { get; private set; }
-        public DelegateCommand TransferandUnzipCommand { get; private set; }
-        public DelegateCommand PopulateCommand { get; private set; }
-        public DelegateCommand ValidateCommand { get; private set; }
+
+        public AsyncDelegateCommand ImportDataCommand { get; protected set; }
+        public AsyncDelegateCommand TransferandUnzipCommand { get; protected set; }
+        public AsyncDelegateCommand PopulateCommand { get; protected set; }
+        public AsyncDelegateCommand ValidateCommand { get; protected set; }
+        public AsyncDelegateCommand GetUnitCFGInfoCommand { get; protected set; }
         public bool CanTransferandUnzip
         {
             get => GetValue(() => CanTransferandUnzip);
-            set
-            {
-                SetValue(() => CanTransferandUnzip, value);
-                //TransferandUnzipCommand.RaiseCanExecuteChanged();
-            }
+            set => SetValue(() => CanTransferandUnzip, value);
         }
         public bool CanPopulate
         {
             get => GetValue(() => CanPopulate);
-            set
-            {
-                SetValue(() => CanPopulate, value);
-                //PopulateCommand.RaiseCanExecuteChanged();
-            }
+            set => SetValue(() => CanPopulate, value);
         }
         public bool CanValidate
         {
             get => GetValue(() => CanValidate);
-            set
-            {
-                SetValue(() => CanValidate, value);
-                //PopulateCommand.RaiseCanExecuteChanged();
-            }
+            set => SetValue(() => CanValidate, value);
         }
-        private bool CanTransferandUnzipCommand() => CanTransferandUnzip;
-        private bool CanPopulateCommand() => CanPopulate;
-        private bool CanValidateCommand() => CanValidate;
-        public PatchListViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg) : base(ea)
+        public bool CanGetUnitCFGInfo
+        {
+            get => GetValue(() => CanGetUnitCFGInfo);
+            set => SetValue(() => CanGetUnitCFGInfo, value);
+        }
+
+        public PatchListViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup) : base(ea, datasetcfg, forwardlookup, reverselookup)
         {
             Content.CollectionChanged += Content_CollectionChanged;
-            dataset = datasetcfg;
-            dataset.Get.Storage.Keys.ToList().ForEach(patchname => Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, patchname, dataset.Get)));
-            ImportDataCommand = new DelegateCommand(() => ImportDataAsync());
-            SaveDataCommand = new DelegateCommand(() => SaveData());
-            TransferandUnzipCommand = new DelegateCommand(() => TransferandUnzip(), ()=> CanTransferandUnzipCommand());
-            PopulateCommand = new DelegateCommand(() => Populate(), () => CanPopulateCommand());
-            ValidateCommand = new DelegateCommand(()=> ValidateAsync(), () => CanValidateCommand());
+            fileStorage.GetKeys().ForEach(patchname => Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, patchname, fileStorage, fwLookup, revLookup)));
             CanTransferandUnzip = true;
             CanPopulate = true;
             CanValidate = true;
+            CanGetUnitCFGInfo = true;
         }
-        private async void Populate()
+
+        private async Task GetUnitCFGInfo()
+        {
+            CanGetUnitCFGInfo = false;
+            var tasks = new List<Func<Task>>();
+            foreach (var patchtask in Content)
+            {
+                tasks.Add(() => Task.Run(() => patchtask.GetUnitCfgInfo()));
+            }
+            var threads = new ThreadHandler(tasks, 3);
+            await threads.RunTasks();
+            CanGetUnitCFGInfo = true;
+        }
+        private async Task Populate()
         {
             CanPopulate = false;
             var tasks = new List<Func<Task>>();
             foreach (var patchtask in Content)
             {
-                tasks.Add(async () =>
-                {
-                    await Task.Run(()=> patchtask.PopulateFiles()); // simulate async work
-                });
+                tasks.Add(() => Task.Run(() => patchtask.PopulateFiles()));
             }
-            await Util.RunTasksWithLimitedConcurrency(tasks, 3);
+            var threads = new ThreadHandler(tasks, 3);
+            await threads.RunTasks();
             CanPopulate = true;
         }
-        private async void ValidateAsync()
+        private async Task Validate()
         {
             CanValidate = false;
             var tasks = new List<Func<Task>>();
             foreach (var patchtask in Content)
             {
-                tasks.Add(async () =>
-                {
-                    await Task.Run(() => patchtask.Validate()); // simulate async work
-                });
+                tasks.Add(() => Task.Run(() => patchtask.Validate()));
             }
-            await Util.RunTasksWithLimitedConcurrency(tasks, 3);
+            var threads = new ThreadHandler(tasks, 3);
+            await threads.RunTasks();
             CanValidate = true;
         }
-
-        private async void TransferandUnzip()
+        private async Task TransferandUnzip()
         {
             CanTransferandUnzip = false;
             var tasks = new List<Func<Task>>();
             foreach (var patchtask in Content)
             {
-                tasks.Add(async () =>
-                {
-                    await patchtask.TransferandUnzip(); // simulate async work
-                });
+                tasks.Add(() => Task.Run(() => patchtask.TransferandUnzip()));
             }
-            await Util.RunTasksWithLimitedConcurrency(tasks, 3);
+            var threads = new ThreadHandler(tasks, 3);
+            await threads.RunTasks();
+            CanTransferandUnzip = true;
+        }
+        private async Task ImportData()
+        {
+            await Task.Run(() =>
+            {
+                var files = NCPFileStructure.GetFiles(NCPFileStructure.networkDevelop);
+                Content.Clear();
+                foreach (var file in files)
+                {
+                    var filenamewithoutext = Path.GetFileNameWithoutExtension(file);
+                    if (filenamewithoutext == null) continue;
+                    if (!filenamewithoutext.Contains("patch")) continue;
+                    var filename = Path.GetFileName(file);
+                    Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, filename, fileStorage, fwLookup, revLookup));
+                }
+            });
             CanTransferandUnzip = true;
         }
 
-        private void Content_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void Content_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action != NotifyCollectionChangedAction.Add) return;
             foreach (var item in e.NewItems)
@@ -116,24 +124,19 @@ namespace PatchViewerModule.ViewModels
                 patch?.CheckIfEmpty();
             }
         }
-
-        private void SaveData()
+        protected override void PublishEvent(PatchSync selected)
         {
-            dataset.Save();
+            _ea.GetEvent<PatchSyncSelectedChanged>().Publish(selected);
         }
-        private void ImportDataAsync()
+
+        protected override async Task SaveData()
         {
-            var files = NCPFileStructure.GetFiles(NCPFileStructure.networkDevelop);
-            Content.Clear();
-            foreach (var file in files)
+            await Task.Run(() =>
             {
-                var filenamewithoutext = Path.GetFileNameWithoutExtension(file);
-                if (filenamewithoutext == null) continue;
-                if (!filenamewithoutext.Contains("patch")) continue;
-                var filename = Path.GetFileName(file);
-                Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, filename, dataset.Get));
-            }
+                fileStorageHandler.Save();
+                fwLookupHandler.Save();
+                revLookupHandler.Save();
+            });
         }
-
     }
 }

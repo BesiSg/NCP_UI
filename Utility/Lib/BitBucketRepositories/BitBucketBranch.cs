@@ -45,7 +45,7 @@
         public List<Branch> values { get; set; }
     }
 
-    public class Branch : aSaveable
+    public class Branch : BaseUtility
     {
         public string id
         {

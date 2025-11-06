@@ -36,16 +36,16 @@ namespace RepositoriesModule.ViewModels
         protected override async void RepositoryReceived(Repository message)
         {
             repository = message;
-            if (AutoUpdateEnabled) await ImportDataAsync();
+            if (AutoUpdateEnabled) await ImportData();
             UpdateCollection();
         }
 
-        protected override void SaveData()
+        protected override async Task SaveData()
         {
-            DatasetHandler.Save();
+            await Task.Run(() => DatasetHandler.Save());
         }
 
-        protected override async Task ImportDataAsync()
+        protected override async Task ImportData()
         {
             if (project == null || repository == null) return;
             await _handler.GetAllAsync($"{project.key} {repository.slug}");

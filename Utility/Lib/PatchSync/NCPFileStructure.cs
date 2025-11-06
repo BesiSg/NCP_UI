@@ -12,6 +12,7 @@ namespace Utility.PatchSync
         public const string networkFNGAMS = $"{networkNCP}\\{fngams}";
         public const string localDevelop = $"{localFNGAMS}\\{develop}";
         public const string networkDevelop = $"{networkFNGAMS}\\{develop}";
+        public const string UnitCfg = "Units.cfg";
 
         public static IEnumerable<string> GetFiles(string folder)
         {

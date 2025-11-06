@@ -5,7 +5,7 @@ using System.Windows;
 namespace Utility.Lib.SettingHandler
 {
     public class SettingHandler<T> : BaseUtility
-        where T : aSaveable
+        where T : BaseUtility
     {
         FileStreamHandler FStream = new FileStreamHandler();
         public event EventHandler SettingLoaded;
@@ -54,7 +54,7 @@ namespace Utility.Lib.SettingHandler
                     }
                     catch (Exception ex)
                     {
-                        this.Data = null;
+                        this.Data = default(T);
                         //MessageBox.Show(ex.Message);
                     }
                 }
@@ -100,6 +100,7 @@ namespace Utility.Lib.SettingHandler
         {
             this.XmlLocation = Path;
         }
+
         public SettingHandler()
         {
         }

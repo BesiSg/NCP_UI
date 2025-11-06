@@ -46,7 +46,7 @@
         }
     }
 
-    public class Repository : aSaveable
+    public class Repository : BaseUtility
     {
         public string slug
         {

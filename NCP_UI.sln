@@ -19,8 +19,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitBucket", "BitBucket\BitB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserAccountModule", "UserAccountModule\UserAccountModule.csproj", "{0A9E2B70-EE71-4157-9573-88D1B5626F38}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilesHandler", "FilesHandler\FilesHandler.csproj", "{A8F56D01-11F5-456A-B123-327CB367CDCA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatchViewer", "PatchViewer\PatchViewer.csproj", "{55BA0DDD-957A-45F3-8EA4-672CF02D916C}"
 EndProject
 Global
@@ -95,14 +93,6 @@ Global
 		{0A9E2B70-EE71-4157-9573-88D1B5626F38}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0A9E2B70-EE71-4157-9573-88D1B5626F38}.Release|x64.ActiveCfg = Release|x64
 		{0A9E2B70-EE71-4157-9573-88D1B5626F38}.Release|x64.Build.0 = Release|x64
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Debug|x64.ActiveCfg = Debug|x64
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Debug|x64.Build.0 = Debug|x64
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Release|x64.ActiveCfg = Release|x64
-		{A8F56D01-11F5-456A-B123-327CB367CDCA}.Release|x64.Build.0 = Release|x64
 		{55BA0DDD-957A-45F3-8EA4-672CF02D916C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{55BA0DDD-957A-45F3-8EA4-672CF02D916C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55BA0DDD-957A-45F3-8EA4-672CF02D916C}.Debug|x64.ActiveCfg = Debug|x64

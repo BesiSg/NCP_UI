@@ -25,7 +25,7 @@ namespace RepositoriesModule.ViewModels
         protected override async void BranchReceived(Branch message)
         {
             branch = message;
-            if (AutoUpdateEnabled) await ImportDataAsync();
+            if (AutoUpdateEnabled) await ImportData();
             UpdateCollection();
         }
 
@@ -41,12 +41,12 @@ namespace RepositoriesModule.ViewModels
             UpdateCollection();
         }
 
-        protected override void SaveData()
+        protected override async Task SaveData()
         {
-            DatasetHandler.Save();
+            await Task.Run(() => DatasetHandler.Save());
         }
 
-        protected override async Task ImportDataAsync()
+        protected override async Task ImportData()
         {
             if (project == null || repository == null || branch == null) return;
             await _handler.GetAllAsync($"{project.key} {repository.slug} {branch.displayId}");

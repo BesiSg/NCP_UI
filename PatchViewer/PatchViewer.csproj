@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FilesHandler\FilesHandler.csproj" />
     <ProjectReference Include="..\UIs\UIs.csproj" />
     <ProjectReference Include="..\Utility\Utility.csproj" />
   </ItemGroup>

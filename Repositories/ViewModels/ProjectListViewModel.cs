@@ -35,12 +35,12 @@ namespace RepositoriesModule.ViewModels
         {
         }
 
-        protected override void SaveData()
+        protected override async Task SaveData()
         {
-            DatasetHandler.Save();
+            await Task.Run(() => DatasetHandler.Save());
         }
 
-        protected override async Task ImportDataAsync()
+        protected override async Task ImportData()
         {
             await _handler.GetAllAsync("0");
         }

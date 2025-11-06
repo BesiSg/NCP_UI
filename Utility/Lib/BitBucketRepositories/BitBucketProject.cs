@@ -16,7 +16,7 @@
         }
     }
 
-    public class Project : aSaveable
+    public class Project : BaseUtility
     {
         public string key
         {

@@ -1,6 +1,5 @@
 
 using OfficeOpenXml;
-using Prism.Common;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -19,6 +18,58 @@ using System.Xml.Serialization;
 
 namespace Utility
 {
+    public abstract class ViewModelBase : BaseUtility
+    {
+        public ViewModelBase()
+        {
+            var type = GetType();
+            var properties = type.GetProperties();
+            foreach (var property in properties)
+            {
+                if (property.PropertyType == typeof(AsyncDelegateCommand))
+                {
+                    var executeMethodName = (property.Name).Replace("Command", "");
+                    property.SetValue(this, CreateCommand(executeMethodName));
+                }
+            }
+
+        }
+        protected AsyncDelegateCommand CreateCommand(string executeMethodName)
+        {
+            var method = GetType().GetMethod(executeMethodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (method == null)
+                return null;
+
+            bool isAsync = typeof(Task).IsAssignableFrom(method.ReturnType);
+
+            AsyncDelegateCommand command;
+
+            if (isAsync)
+            {
+                var asyncHandler = (Func<Task>)Delegate.CreateDelegate(typeof(Func<Task>), this, method);
+                //command = DelegateCommand.FromAsyncHandler(asyncHandler);
+                command = new AsyncDelegateCommand(asyncHandler);
+            }
+            else
+            {
+                return null;
+            }
+            string canExecutePropName = "Can" + executeMethodName;
+            var canExecuteProp = GetType().GetProperty(canExecutePropName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (canExecuteProp != null && canExecuteProp.PropertyType == typeof(bool))
+            {
+                // Build expression: () => this.CanXXX
+                var parameter = System.Linq.Expressions.Expression.Constant(this);
+                var propertyAccess = System.Linq.Expressions.Expression.Property(parameter, canExecuteProp);
+                var lambda = System.Linq.Expressions.Expression.Lambda<Func<bool>>(propertyAccess);
+
+                command.ObservesCanExecute(lambda);
+            }
+            return command;
+        }
+    }
+
     public class BindingProxy : Freezable
     {
         #region Overrides of Freezable
@@ -40,12 +91,89 @@ namespace Utility
             DependencyProperty.Register("Data", typeof(object),
                                          typeof(BindingProxy));
     }
+    [Serializable]
+    public abstract class aSaveableString : BaseUtility
+    {
+        public XmlDictionary<string, string> Data { get; set; } = new XmlDictionary<string, string>();
+        public string Get(string key)
+        {
+            if (!Data.ContainsKey(key))
+                Data[key] = string.Empty;
+            return Data[key];
+        }
+        public List<string> GetKeys()
+        {
+            return Data.Keys.ToList();
+        }
+        public List<string> GetValues()
+        {
+            return Data.Values.ToList();
+        }
+        public string this[string key]
+        {
+            get
+            {
+                // Following trick can reduce the range check by one
+                if (!Data.ContainsKey(key))
+                {
+                    throw new KeyNotFoundException(key);
+                }
+                return Data[key];
+            }
+            set
+            {
+                Data[key] = value;
+            }
+        }
+        public bool ContainsKey(string key)
+        {
+            return Data.ContainsKey(key);
+        }
+    }
 
     [Serializable]
-    public abstract class aSaveable : BaseUtility
+    public abstract class aSaveable<T> : BaseUtility
+        where T : new()
     {
 
+        public XmlDictionary<string, T> Data { get; set; } = new XmlDictionary<string, T>();
+        public virtual T Get(string key)
+        {
+            if (!Data.ContainsKey(key))
+                Data[key] = new T();
+            return Data[key];
+        }
+        public List<string> GetKeys()
+        {
+            return Data.Keys.ToList();
+        }
+        public List<T> GetValues()
+        {
+            return Data.Values.ToList();
+        }
+        public T this[string key]
+        {
+            get
+            {
+                // Following trick can reduce the range check by one
+                if (!Data.ContainsKey(key))
+                {
+                    throw new KeyNotFoundException(key);
+                }
+                return Data[key];
+            }
+            set
+            {
+                Data[key] = value;
+            }
+        }
+        public bool ContainsKey(string key)
+        {
+            return Data.ContainsKey(key);
+        }
     }
+
+
     public class RecipeBaseUtility : B_Utility, INotifyPropertyChanged, System.ICloneable
     {
         #region MIT binding
@@ -130,11 +258,9 @@ namespace Utility
         #endregion
         #endregion
         #region inotifypropertychanged
-        public event PropertyChangedEventHandler PropertyChanged;
-
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
             RecipeNoticeHandler.RecipeChanged = true;
         }
 
@@ -217,24 +343,22 @@ namespace Utility
             }
 
             string propertyName = GetPropertyName(lambdaExpression);
-            if (propertyName.Contains("Can"))
-            {
-                var CommandName = propertyName.Replace("Can", "") + "Command";
-                var type = this.GetType();
-                var commandpropertyinfo = type.GetProperty(CommandName);
-                if (commandpropertyinfo != null)
-                {
-                    var commandInstance = commandpropertyinfo.GetValue(this);
-                    MethodInfo executeMethod = commandInstance.GetType().GetMethod("RaiseCanExecuteChanged");
-                    if (executeMethod != null)
-                    {
-                        executeMethod.Invoke(commandInstance, null);
-                    }
-                }
+            //if (propertyName.Contains("Can"))
+            //{
+            //    var CommandName = propertyName.Replace("Can", "") + "Command";
+            //    var type = this.GetType();
+            //    var commandpropertyinfo = type.GetProperty(CommandName);
+            //    if (commandpropertyinfo != null)
+            //    {
+            //        var commandInstance = commandpropertyinfo.GetValue(this);
+            //        MethodInfo executeMethod = commandInstance.GetType().GetMethod("RaiseCanExecuteChanged");
+            //        if (executeMethod != null)
+            //        {
+            //            executeMethod.Invoke(commandInstance, null);
+            //        }
+            //    }
 
-            }
-
-
+            //}
 
             var storedValue = this.GetValue<T>(propertyName);
 
@@ -252,36 +376,11 @@ namespace Utility
                 }
             }
             this.propertyValueStorage[propertyName] = value;
-            this.OnPropertyChanged(propertyName);
+            this.OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
 
             return true;
         }
         #endregion
-        #endregion
-        #region inotifypropertychanged
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected virtual void OnPropertyChanged<T>(Expression<Func<T>> raiser)
-        {
-            var propName = ((MemberExpression)raiser.Body).Member.Name;
-            this.OnPropertyChanged(propName);
-        }
-
-        protected bool Set<T>(ref T field, T value, [CallerMemberName] string name = null)
-        {
-            //if ( !EqualityComparer<T>.Default.Equals( field, value ) )
-            {
-                field = value;
-                this.OnPropertyChanged(name);
-                return true;
-            }
-            //return false;
-        }
         #endregion
     }
     public class WriteText : BaseUtility
@@ -426,12 +525,6 @@ namespace Utility
         #region Cloneable
         public object Clone() { return this.MemberwiseClone(); }
         #endregion
-        #region Getname
-        protected string GetName([CallerMemberName] string name = null)
-        {
-            return name;
-        }
-        #endregion
     }
     public class ErrorResult
     {
@@ -477,6 +570,7 @@ namespace Utility
     {
         public static string ComputeFileHash(string filePath)
         {
+            if (!File.Exists(filePath)) return string.Empty;
             using (var sha512 = SHA512.Create())
             using (var stream = File.OpenRead(filePath))
             {
@@ -485,9 +579,35 @@ namespace Utility
             }
         }
     }
-
-
-
+    public class ListHandler<T> : List<T>
+        where T : class
+    {
+        public event EventHandler<ListHandler<T>> ListChanged;
+        public new void Add(T source)
+        {
+            lock (this)
+            {
+                base.Add(source);
+                ListChanged?.Invoke(this, this);
+            }
+        }
+        public new void Clear()
+        {
+            lock (this)
+            {
+                base.Clear();
+                ListChanged?.Invoke(this, this);
+            }
+        }
+        public new void AddRange(IEnumerable<T> source)
+        {
+            lock (this)
+            {
+                base.AddRange(source);
+                ListChanged?.Invoke(this, this);
+            }
+        }
+    }
     public class FileStreamHandler : BaseUtility
     {
         FileStream File;
@@ -539,15 +659,16 @@ namespace Utility
             return this.Result;
         }
     }
-
-    public class Util
+    public class ThreadHandler(System.Collections.Generic.IEnumerable<Func<Task>> taskfactories, int maxnumberofparallelism)
     {
-        public static async Task RunTasksWithLimitedConcurrency(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
+        private int maxDegreeOfParallelism = maxnumberofparallelism;
+        private System.Collections.Generic.IEnumerable<Func<Task>> taskFactories = taskfactories;
+        private List<Task> runningTasks = new List<Task>();
+
+        public async Task RunTasks()
         {
             using (var semaphore = new SemaphoreSlim(maxDegreeOfParallelism))
             {
-                var runningTasks = new List<Task>();
-
                 foreach (var taskFactory in taskFactories)
                 {
                     await semaphore.WaitAsync();
@@ -571,6 +692,10 @@ namespace Utility
                 await Task.WhenAll(runningTasks);
             }
         }
+    }
+    public class Util
+    {
+
         public static void LoadAssemblies(string src)
         {
             var files = Directory.GetFiles(src, "HiPA.*.dll");
@@ -614,7 +739,6 @@ namespace Utility
                         var myWorksheet = xlPackage.Workbook.Worksheets.First(); //select sheet here
                         var totalRows = myWorksheet.Dimension.End.Row;
                         var totalColumns = myWorksheet.Dimension.End.Column;
-                        int idx = 0;
                         Issues.Clear();
                         var sb = new StringBuilder(); //this is your data
                         for (int rowNum = 1; rowNum < totalRows; rowNum++) //select starting row here
@@ -661,7 +785,7 @@ namespace Utility
                                             var linkedissues = Cols[(int)ColumnIdx["Linked Issues"]];
                                             var issues = linkedissues.Split(',');
                                             var linkedtsgsds = issues.Where(x => x.Contains("TSGSD")).ToList();
-                                            linkedtsgsds.ForEach(x => x.Replace(" ", string.Empty));
+                                            linkedtsgsds.ForEach(x => x = x.Replace(" ", string.Empty));
                                             var summary = Cols[(int)ColumnIdx["Summary"]];
                                             var tsgsdfromsummary = summary.Split(':', '(').First().Replace(" ", string.Empty);
                                             if (linkedtsgsds.Contains(tsgsdfromsummary))
@@ -806,7 +930,6 @@ namespace Utility
         public static Dictionary<Type, List<Type>> QueryConfigurationTypes(IEnumerable<Type> validTypes)
         {
             var typePairs = new Dictionary<Type, List<Type>>();
-            var something = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var valid in validTypes)

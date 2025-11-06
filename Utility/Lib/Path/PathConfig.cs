@@ -4,7 +4,7 @@ using Utility.Lib.ColumnDisplay;
 namespace Utility.Lib.PathConfig
 {
     [Serializable]
-    public class PathConfig : aSaveable
+    public class PathConfig : BaseUtility
     {
         public event EventHandler SavePathChanged;
         public event EventHandler LoadPathChanged;
@@ -56,7 +56,7 @@ namespace Utility.Lib.PathConfig
             }
         }
 
-        public IEnumerable<NameBoolPair> GetVisList()
+        public System.Collections.Generic.IEnumerable<NameBoolPair> GetVisList()
         {
             var _ColDisplay = new List<NameBoolPair>();
             var properties = typeof(ColumnDisplay.ColumnDisplay).GetProperties();

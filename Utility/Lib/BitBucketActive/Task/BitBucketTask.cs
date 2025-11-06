@@ -3,7 +3,7 @@ using Utility.Lib.BitBucketRepositories;
 
 namespace Utility.Lib.BitBucketActive.Task
 {
-    public class BitBucketTask : aSaveable
+    public class BitBucketTask : BaseUtility
     {
         public string Query
         {

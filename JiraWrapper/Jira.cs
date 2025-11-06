@@ -12,7 +12,7 @@ namespace JiraWrapper
             _jira = Jira.CreateRestClient("https://jira.besi.com", null, null);
             _jira.RestClient.RestSharpClient.Authenticator = new PATTokenAuthentication(PAT);
         }
-        public IEnumerable<Issue> GetIssues(Project project, DateTime changeDate)
+        public System.Collections.Generic.IEnumerable<Issue> GetIssues(Project project, DateTime changeDate)
         {
             var issues = new List<Issue>();
             var projectJql = project == Project.All ? "FSL, XHD, NCP, AMS-X" : project.ToString();
@@ -33,14 +33,14 @@ namespace JiraWrapper
             listoftasks.ForEach(x => issues.AddRange(x.Result));
             return issues;
         }
-        public IEnumerable<Comment> GetComments(string ticket)
+        public System.Collections.Generic.IEnumerable<Comment> GetComments(string ticket)
         {
             var issue = _jira.Issues.GetIssueAsync(ticket).Result;
             if (issue != null)
                 return issue.GetCommentsAsync().Result;
             return null;
         }
-        public IEnumerable<Comment> GetComments(Issue issue)
+        public System.Collections.Generic.IEnumerable<Comment> GetComments(Issue issue)
         {
             if (issue != null)
                 return issue.GetCommentsAsync().Result;

@@ -1,7 +1,7 @@
 ﻿namespace Utility.Lib.UserAccount
 {
     [Serializable]
-    public class UserAccount : aSaveable
+    public class UserAccount : BaseUtility
     {
         public string BBHTMLToken
         {

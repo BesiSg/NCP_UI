@@ -9,7 +9,7 @@ using Utility.Lib.UserAccount;
 
 namespace RepositoriesModule.ViewModels
 {
-    public class TaskFormViewModel : BaseUtility
+    public class TaskFormViewModel : ViewModelBase
     {
         public ObservableCollection<Project> Projects { get; set; } = new ObservableCollection<Project>();
         public ObservableCollection<Repository> Repositories { get; set; } = new ObservableCollection<Repository>();
@@ -21,8 +21,8 @@ namespace RepositoriesModule.ViewModels
         private SettingHandler<BitBucketStorage<Branch>> BranchDatasetHandler;
         private SettingHandler<BitBucketStorage<Repository>> RepositoryDatasetHandler;
         private SettingHandler<BitBucketStorage<Project>> ProjectDatasetHandler;
-        public DelegateCommand GetNextTagCommand { get; private set; }
-        public DelegateCommand SaveDataCommand { get; private set; }
+        public AsyncDelegateCommand GetNextTagCommand { get; protected set; }
+        public AsyncDelegateCommand SaveDataCommand { get; protected set; }
 
         private string projectkey => "0";
         private string repositorykey => Form?.Project?.key;
@@ -63,8 +63,6 @@ namespace RepositoriesModule.ViewModels
 
             _tagHandler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, CommitDatasetHandler.Get);
 
-            GetNextTagCommand = new DelegateCommand(() => GetNextTag());
-            SaveDataCommand = new DelegateCommand(() => SaveData());
             _ea.GetEvent<ProjectSelectedChanged>().Subscribe(ProjectReceived);
             _ea.GetEvent<RepositorySelectedChanged>().Subscribe(RepositoryReceived);
             _ea.GetEvent<BranchSelectedChanged>().Subscribe(BranchReceived);
@@ -108,7 +106,7 @@ namespace RepositoriesModule.ViewModels
         {
             if (Form.Branch == message) return;
             Form.Branch = message;
-            GetNextTag();
+            GetNextTag().Wait();
         }
 
         private void ProjectReceived(Project message)
@@ -129,20 +127,23 @@ namespace RepositoriesModule.ViewModels
             Form.LatestTag = null;
             Form.NextTag = string.Empty;
         }
-        private void SaveData()
+        private async Task SaveData()
         {
-            TagDatasetHandler.Save();
-            CommitDatasetHandler.Save();
+            await Task.Run(() =>
+            {
+                TagDatasetHandler.Save();
+                CommitDatasetHandler.Save();
+            });
         }
-
-        private void GetNextTag()
+        private async Task GetNextTag()
         {
-            var result = _tagHandler.GetLatestTagAndNext(Form.Project?.key, Form.Repository?.name, Form.Branch?.displayId);
-            Form.LatestTag = result.Item1;
-            Form.NextTag = result.Item2;
-            Selected = result.Item1;
+            await Task.Run(() =>
+            {
+                var result = _tagHandler.GetLatestTagAndNext(Form.Project?.key, Form.Repository?.name, Form.Branch?.displayId);
+                Form.LatestTag = result.Item1;
+                Form.NextTag = result.Item2;
+                Selected = result.Item1;
+            });
         }
-
-        private bool CanGetNextTag() => Form.CanGetNextTag();
     }
 }

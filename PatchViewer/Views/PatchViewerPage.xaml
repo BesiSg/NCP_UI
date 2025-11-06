@@ -7,7 +7,8 @@
              d:DesignHeight="450" d:DesignWidth="1910"
              xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors" xmlns:views="clr-namespace:PatchViewerModule.Views"
              prism:ViewModelLocator.AutoWireViewModel="True">
-    <StackPanel>
+    <StackPanel Orientation="Horizontal">
         <views:PatchList/>
+        <views:PatchViewer/>
     </StackPanel>
 </UserControl>

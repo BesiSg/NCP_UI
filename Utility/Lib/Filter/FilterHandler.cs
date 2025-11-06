@@ -34,7 +34,7 @@ namespace Utility.Lib.Filter
             if (this._Collection.Any(x => x.Entry?.ToString() == item?.ToString())) return;
             this._Collection.Add(new FilterItem(item, Selected));
         }
-        public void Add(IEnumerable<object> source)
+        public void Add(System.Collections.Generic.IEnumerable<object> source)
         {
             if (source == null) return;
             source.ToList().ForEach(x => this.Add(x));
@@ -45,7 +45,7 @@ namespace Utility.Lib.Filter
                 this._Collection.ForEach(x => this.Collection.Add(x));
             });
         }
-        public IEnumerable<FilterItem> GetDisabled()
+        public System.Collections.Generic.IEnumerable<FilterItem> GetDisabled()
         {
             return this._Collection.Where(x => x.Selected == false);
         }

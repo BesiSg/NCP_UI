@@ -28,6 +28,8 @@ namespace NCPWorkflowHelper
             containerRegistry.RegisterSingleton<SettingHandler<BitBucketStorage<Tag>>>();
             containerRegistry.RegisterSingleton<SettingHandler<UserAccount>>();
             containerRegistry.RegisterSingleton<SettingHandler<PatchFilesStorage>>();
+            containerRegistry.RegisterSingleton<SettingHandler<PatchForwardLookup>>();
+            containerRegistry.RegisterSingleton<SettingHandler<PatchReverseLookup>>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
