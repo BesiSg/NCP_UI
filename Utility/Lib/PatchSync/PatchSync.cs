@@ -1,11 +1,8 @@
-﻿using System.IO.Compression;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using Utility;
-using Utility.Lib.PatchSync;
+﻿using System.IO;
+using System.IO.Compression;
 using Utility.PatchSync;
 
-namespace FilesHandler.Develop
+namespace Utility.Lib.PatchSync
 {
     public class PatchSync : BaseUtility
     {
@@ -13,17 +10,13 @@ namespace FilesHandler.Develop
         private string _destinationFolder;
         private string _sourceFile;
         private string _destinationFile;
-        private PatchFilesStorage fileStorage;
-        private Logger logger = new Logger($"{Directory.GetCurrentDirectory()}\\Data\\PatchSyncLogger.txt");
+        private PatchSyncData fileStorage;
+        private PatchForwardLookup forwardLookup;
+        private PatchReverseLookup reverseLookup;
         public bool DestinationPatchNotEmpty
         {
             get => GetValue(() => DestinationPatchNotEmpty);
             set => SetValue(() => DestinationPatchNotEmpty, value);
-        }
-        public List<string> PatchFiles
-        {
-            get => GetValue(() => PatchFiles);
-            set => SetValue(() => PatchFiles, value);
         }
         public string PatchName
         {
@@ -50,14 +43,14 @@ namespace FilesHandler.Develop
             get => GetValue(() => ValidateProgress);
             set => SetValue(() => ValidateProgress, value);
         }
-        public Task<ErrorResult> TransferandUnzip()
+        public Task TransferandUnzip()
         {
             return Task.Run(() =>
             {
                 ClearErrorFlags();
                 try
                 {
-                    if (DestinationPatchNotEmpty) return Result;
+                    if (DestinationPatchNotEmpty) return;
                     if (!File.Exists(_sourceFile)) ThrowError("Source file does not exist.");
                     if (Directory.Exists($"{_destinationFolder}\\{PatchNameWithoutExtension}"))
                     {
@@ -74,7 +67,6 @@ namespace FilesHandler.Develop
                 {
                     CatchAndPromptErr(e);
                 }
-                return Result;
             });
         }
         private ErrorResult ExtractZip(string zipFilePath, string extractFolderPath)
@@ -180,7 +172,7 @@ namespace FilesHandler.Develop
                         }
                     }
                 }
-                PatchFiles.Clear();
+                var patchfiles= new List<string>();
                 directories.Add(rootPath);
                 foreach (var directory in directories)
                 {
@@ -193,12 +185,10 @@ namespace FilesHandler.Develop
                             shortened.Add(name.Replace(rootPath, ""));
                     });
 
-                    PatchFiles.AddRange(shortened);
+                    patchfiles.AddRange(shortened);
                 }
-                if (!fileStorage.Storage.ContainsKey(PatchNameWithoutExtension))
-                    fileStorage.Storage[PatchNameWithoutExtension] = new List<string>();
-                fileStorage.Storage[PatchNameWithoutExtension].Clear();
-                fileStorage.Storage[PatchNameWithoutExtension].AddRange(PatchFiles);
+                fileStorage.StandardFiles.Clear();
+                fileStorage.StandardFiles.AddRange(patchfiles);
             }
             catch (Exception ex)
             {
@@ -210,21 +200,35 @@ namespace FilesHandler.Develop
         {
             var localrootPath = $"{_destinationFolder}\\{PatchNameWithoutExtension}";
             var networkrootPath = $"{NCPFileStructure.networkDevelop}\\{PatchNameWithoutExtension}";
-            var listoffilestovalidate = fileStorage.Storage[PatchNameWithoutExtension];
+            var listoffilestovalidate = fileStorage.StandardFiles;
             var totalcount = listoffilestovalidate.Count;
             var currcount = 0;
+            var tasks = new List<Func<Task>>();
             foreach (var file in listoffilestovalidate)
             {
-                var same = Hash.ComputeFileHash(localrootPath + file) == Hash.ComputeFileHash(networkrootPath + file);
-                if (!same)
+                tasks.Add(async () =>
                 {
-                    logger.Log($"{localrootPath + file}, {networkrootPath + file}");
-                }
-                currcount++;
+                    await Task.Run(() => CheckandAddIfDifferent(localrootPath, networkrootPath, file, totalcount, ref currcount));
+                });
+            }
+            var thread = new ThreadHandler(tasks, 10);
+            thread.RunTasks().Wait();
+            return Result;
+        }
+        object ValidationObj = new object();
+        private void CheckandAddIfDifferent(string localrootPath, string networkrootPath, string file, int totalcount, ref int currcount)
+        {
+            var same = Hash.ComputeFileHash(localrootPath + file) == Hash.ComputeFileHash(networkrootPath + file);
+            if (!same)
+            {
+                fileStorage.DifferentFiles.Add(file);
+            }
+            currcount++;
+            lock (ValidationObj)
+            {
                 ValidateProgress = ((double)currcount / totalcount) * 100;
             }
 
-            return Result;
         }
         public Task<ErrorResult> CheckIfEmpty()
         {
@@ -242,7 +246,7 @@ namespace FilesHandler.Develop
                 return Result;
             });
         }
-        public PatchSync(string sourcefolder, string destinationfolder, string filename, PatchFilesStorage filestorage)
+        public PatchSync(string sourcefolder, string destinationfolder, string filename, PatchFilesStorage filestorage, PatchForwardLookup forwardlookup, PatchReverseLookup reverselookup)
         {
             _sourceFolder = sourcefolder;
             _destinationFolder = destinationfolder;
@@ -250,15 +254,44 @@ namespace FilesHandler.Develop
             PatchNameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
             _sourceFile = $"{_sourceFolder}\\{PatchName}";
             _destinationFile = $"{_destinationFolder}\\{PatchName}";
-            fileStorage = filestorage;
-            PatchFiles = new List<string>();
-            if (fileStorage.Storage.ContainsKey(PatchNameWithoutExtension))
+            fileStorage = filestorage.Get(PatchNameWithoutExtension);
+            forwardLookup = forwardlookup;
+            reverseLookup = reverselookup;
+        }
+        public void GetUnitCfgInfo()
+        {
+            var fromLocal = true;
+            if (fromLocal)
             {
-                PatchFiles.Clear();
-                PatchFiles.AddRange(fileStorage.Storage[PatchNameWithoutExtension]);
+                var lines = new Dictionary<string, string>();
+                var path = $"{NCPFileStructure.localDevelop}\\{PatchNameWithoutExtension}\\{NCPFileStructure.UnitCfg}";
+                if (!File.Exists(path)) return;
+                using (StreamReader reader = new StreamReader(path))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line == "\r") continue;
+                        if (line.Contains("# This is a dummy entry to satisfy the CopyRelease script", StringComparison.OrdinalIgnoreCase)) break;
+                        if (line.FirstOrDefault() == '#') continue;
+                        if (line.Contains("AllUnitVersionsList", StringComparison.OrdinalIgnoreCase)) continue;
+                        line = line.Replace("\\", "");
+                        line = line.TrimEnd();
+                        var parts = line.Split(' ', '\t');
+                        if (parts.Count() < 2) continue;
+                        if (parts[0].Contains("Version_")) parts[0] = parts[0].Replace("Version_", "");
+                        if (parts[^1].EndsWith(".patch")) parts[^1] = parts[^1].Replace(".patch", "");
+                        lines[parts[0]] = parts[^1];
+                    }
+                    var fwlist = forwardLookup.Get(PatchNameWithoutExtension);
+                    fwlist.Clear();
+                    foreach (var item in lines)
+                    {
+                        fwlist.Add($"{item.Key} {item.Value}");
+                        reverseLookup[$"{item.Key} {item.Value}"] = PatchNameWithoutExtension;
+                    }
+                }
             }
-            else
-                PatchFiles = new List<string>();
         }
     }
 }
