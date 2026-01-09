@@ -4,6 +4,7 @@ using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.UserAccount;
+using Utility.SQL;
 
 namespace NCPWorkflowHelper
 {
@@ -30,6 +31,7 @@ namespace NCPWorkflowHelper
             containerRegistry.RegisterSingleton<SettingHandler<PatchFilesStorage>>();
             containerRegistry.RegisterSingleton<SettingHandler<PatchForwardLookup>>();
             containerRegistry.RegisterSingleton<SettingHandler<PatchReverseLookup>>();
+            containerRegistry.RegisterSingleton<SQLLib>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)

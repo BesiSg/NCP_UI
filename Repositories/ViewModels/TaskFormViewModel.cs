@@ -102,11 +102,11 @@ namespace RepositoriesModule.ViewModels
             if (Form.Project == null || Form.Repository == null || !BranchDatasetHandler.Get.Storage.ContainsKey(branchkey)) return;
             Branches.AddRange(BranchDatasetHandler.Get.Storage[branchkey]);
         }
-        private void BranchReceived(Branch message)
+        private async void BranchReceived(Branch message)
         {
             if (Form.Branch == message) return;
             Form.Branch = message;
-            GetNextTag().Wait();
+            await GetNextTag();
         }
 
         private void ProjectReceived(Project message)

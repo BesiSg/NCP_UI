@@ -4,6 +4,7 @@ using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.UserAccount;
+using Utility.SQL;
 
 namespace NCPWorkflowHelper.ViewModels
 {
@@ -21,6 +22,7 @@ namespace NCPWorkflowHelper.ViewModels
         private SettingHandler<PatchFilesStorage> PatchDataHandler { get; set; }
         private SettingHandler<PatchForwardLookup> PatchForwardLUHandler { get; set; }
         private SettingHandler<PatchReverseLookup> PatchReverseLUHandler { get; set; }
+        private SQLLib sQLLib { get; set; }
         string StartupPath = AppDomain.CurrentDomain.BaseDirectory;
         string UserAccount_Filename = "Data\\UserAcc.xml";
         string ProjectDataset_Filename = "Data\\ProjectDataset.xml";
@@ -31,7 +33,7 @@ namespace NCPWorkflowHelper.ViewModels
         string PatchDataset_Filename = "Data\\PatchDataset.xml";
         string PatchForward_Filename = "Data\\PatchForwardLookup.xml";
         string PatchReverse_Filename = "Data\\PatchReverseLookup.xml";
-        public MainWindowViewModel(SettingHandler<UserAccount> useraccountHandler, SettingHandler<BitBucketStorage<Project>> projectDataHandler, SettingHandler<BitBucketStorage<Branch>> branchDataHandler, SettingHandler<BitBucketStorage<Repository>> repositoryDataHandler, SettingHandler<BitBucketStorage<Commit>> commitDataHandler, SettingHandler<BitBucketStorage<Tag>> tagDataHandler, SettingHandler<PatchFilesStorage> patchDataHandler, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup)
+        public MainWindowViewModel(SettingHandler<UserAccount> useraccountHandler, SettingHandler<BitBucketStorage<Project>> projectDataHandler, SettingHandler<BitBucketStorage<Branch>> branchDataHandler, SettingHandler<BitBucketStorage<Repository>> repositoryDataHandler, SettingHandler<BitBucketStorage<Commit>> commitDataHandler, SettingHandler<BitBucketStorage<Tag>> tagDataHandler, SettingHandler<PatchFilesStorage> patchDataHandler, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup, SQLLib sql)
         {
             UserAccountCfgHandler = useraccountHandler;
             ProjectDataHandler = projectDataHandler;
@@ -53,6 +55,8 @@ namespace NCPWorkflowHelper.ViewModels
             PatchForwardLUHandler.SetPathnLoad(Path.Combine(StartupPath, PatchForward_Filename));
             PatchReverseLUHandler.SetPathnLoad(Path.Combine(StartupPath, PatchReverse_Filename));
 
+            sQLLib = new SQLLib();
+            sQLLib.CreateTables();
             SaveDataCommand = new DelegateCommand(() => SaveData());
             ImportDataCommand = new DelegateCommand(() => ImportData());
             OnClosingCommand = new DelegateCommand(() => SaveData());

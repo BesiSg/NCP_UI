@@ -13,7 +13,7 @@ namespace BitBucket
         {
             var key = $"{projectkey} {reposlug} {branchname}";
             if (!_dataset.Storage.ContainsKey(key)) return (null, string.Empty);
-            var latest = _dataset.Storage[key].FirstOrDefault(tag => tag.displayId != string.Empty && tag.displayId != null);
+            var latest = _dataset.Storage[key].FirstOrDefault(tag => tag.displayId != string.Empty && tag.displayId != null && tag.latestCommit != string.Empty && tag.latestCommit != null);
             if (latest == null) return (null, string.Empty);
             return (latest, GetNextTag(latest.displayId));
         }

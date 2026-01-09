@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using Utility.PatchSync;
+using Utility.SQL;
 
 namespace Utility.Lib.PatchSync
 {
@@ -11,8 +12,9 @@ namespace Utility.Lib.PatchSync
         private string _sourceFile;
         private string _destinationFile;
         private PatchSyncData fileStorage;
-        private PatchForwardLookup forwardLookup;
-        private PatchReverseLookup reverseLookup;
+        //private PatchForwardLookup forwardLookup;
+        //private PatchReverseLookup reverseLookup;
+        private SQLLib sQLLib;
         public bool DestinationPatchNotEmpty
         {
             get => GetValue(() => DestinationPatchNotEmpty);
@@ -172,7 +174,7 @@ namespace Utility.Lib.PatchSync
                         }
                     }
                 }
-                var patchfiles= new List<string>();
+                var patchfiles = new List<string>();
                 directories.Add(rootPath);
                 foreach (var directory in directories)
                 {
@@ -187,6 +189,7 @@ namespace Utility.Lib.PatchSync
 
                     patchfiles.AddRange(shortened);
                 }
+
                 fileStorage.StandardFiles.Clear();
                 fileStorage.StandardFiles.AddRange(patchfiles);
             }
@@ -246,7 +249,7 @@ namespace Utility.Lib.PatchSync
                 return Result;
             });
         }
-        public PatchSync(string sourcefolder, string destinationfolder, string filename, PatchFilesStorage filestorage, PatchForwardLookup forwardlookup, PatchReverseLookup reverselookup)
+        public PatchSync(string sourcefolder, string destinationfolder, string filename, PatchFilesStorage filestorage, PatchForwardLookup forwardlookup, PatchReverseLookup reverselookup, SQLLib sql)
         {
             _sourceFolder = sourcefolder;
             _destinationFolder = destinationfolder;
@@ -255,8 +258,9 @@ namespace Utility.Lib.PatchSync
             _sourceFile = $"{_sourceFolder}\\{PatchName}";
             _destinationFile = $"{_destinationFolder}\\{PatchName}";
             fileStorage = filestorage.Get(PatchNameWithoutExtension);
-            forwardLookup = forwardlookup;
-            reverseLookup = reverselookup;
+            //forwardLookup = forwardlookup;
+            //reverseLookup = reverselookup;
+            sQLLib = sql;
         }
         public void GetUnitCfgInfo()
         {
@@ -283,13 +287,12 @@ namespace Utility.Lib.PatchSync
                         if (parts[^1].EndsWith(".patch")) parts[^1] = parts[^1].Replace(".patch", "");
                         lines[parts[0]] = parts[^1];
                     }
-                    var fwlist = forwardLookup.Get(PatchNameWithoutExtension);
-                    fwlist.Clear();
+                    var listofnames= new List<string>();
                     foreach (var item in lines)
                     {
-                        fwlist.Add($"{item.Key} {item.Value}");
-                        reverseLookup[$"{item.Key} {item.Value}"] = PatchNameWithoutExtension;
+                        listofnames.Add($"{item.Key} {item.Value}");
                     }
+                    sQLLib.ClearandAddUnitPatch(PatchNameWithoutExtension, listofnames);
                 }
             }
         }

@@ -5,19 +5,19 @@
     {
         public ListHandler<string> GetStandardFiles(string key)
         {
-            if (!Data.ContainsKey(key) || Data[key] == null)
-                Data[key] = new PatchSyncData();
-            if (Data[key].StandardFiles == null)
-                Data[key].StandardFiles = new ListHandler<string>();
-            return Data[key].StandardFiles;
+            if (!ContainsKey(key) || this[key] == null)
+                this[key] = new PatchSyncData();
+            if (this[key].StandardFiles == null)
+                this[key].StandardFiles = new ListHandler<string>();
+            return this[key].StandardFiles;
         }
         public ListHandler<string> GetDifferentFiles(string key)
         {
-            if (!Data.ContainsKey(key) || Data[key] == null)
-                Data[key] = new PatchSyncData();
-            if (Data[key].DifferentFiles == null)
-                Data[key].DifferentFiles = new ListHandler<string>();
-            return Data[key].DifferentFiles;
+            if (!ContainsKey(key) || this[key] == null)
+                this[key] = new PatchSyncData();
+            if (this[key].DifferentFiles == null)
+                this[key].DifferentFiles = new ListHandler<string>();
+            return this[key].DifferentFiles;
         }
     }
 }

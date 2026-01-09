@@ -1,10 +1,11 @@
 ﻿using Utility;
 using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
+using Utility.SQL;
 
 namespace PatchViewerModule.ViewModels
 {
-    public abstract class ViewModelBase<Tbase>(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetsource, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup) : ViewModelBase
+    public abstract class ViewModelBase<Tbase>(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetsource, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup, SQLLib sql) : ViewModelBase
         where Tbase : BaseUtility
     {
         protected IEventAggregator _ea = ea;
@@ -14,9 +15,9 @@ namespace PatchViewerModule.ViewModels
         protected SettingHandler<PatchFilesStorage> fileStorageHandler = datasetsource;
         protected SettingHandler<PatchForwardLookup> fwLookupHandler = forwardlookup;
         protected SettingHandler<PatchReverseLookup> revLookupHandler = reverselookup;
+        protected SQLLib SQL = sql;
         protected abstract void PublishEvent(Tbase selected);
         protected abstract Task SaveData();
-
         public AsyncDelegateCommand SaveDataCommand { get; protected set; }
         public Tbase Selected
         {

@@ -6,13 +6,13 @@ using Utility.EventAggregator;
 using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
 using Utility.PatchSync;
+using Utility.SQL;
 
 namespace PatchViewerModule.ViewModels
 {
     public class PatchListViewModel : ViewModelBase<PatchSync>
     {
         public ObservableCollection<PatchSync> Content { get; private set; } = new ObservableCollection<PatchSync>();
-
         public AsyncDelegateCommand ImportDataCommand { get; protected set; }
         public AsyncDelegateCommand TransferandUnzipCommand { get; protected set; }
         public AsyncDelegateCommand PopulateCommand { get; protected set; }
@@ -39,10 +39,10 @@ namespace PatchViewerModule.ViewModels
             set => SetValue(() => CanGetUnitCFGInfo, value);
         }
 
-        public PatchListViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup) : base(ea, datasetcfg, forwardlookup, reverselookup)
+        public PatchListViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup, SQLLib sql) : base(ea, datasetcfg, forwardlookup, reverselookup, sql)
         {
             Content.CollectionChanged += Content_CollectionChanged;
-            fileStorage.GetKeys().ForEach(patchname => Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, patchname, fileStorage, fwLookup, revLookup)));
+            fileStorage.GetKeys().ForEach(patchname => Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, patchname, fileStorage, fwLookup, revLookup, SQL)));
             CanTransferandUnzip = true;
             CanPopulate = true;
             CanValidate = true;
@@ -99,6 +99,7 @@ namespace PatchViewerModule.ViewModels
         }
         private async Task ImportData()
         {
+            CanTransferandUnzip = false;
             await Task.Run(() =>
             {
                 var files = NCPFileStructure.GetFiles(NCPFileStructure.networkDevelop);
@@ -109,7 +110,7 @@ namespace PatchViewerModule.ViewModels
                     if (filenamewithoutext == null) continue;
                     if (!filenamewithoutext.Contains("patch")) continue;
                     var filename = Path.GetFileName(file);
-                    Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, filename, fileStorage, fwLookup, revLookup));
+                    Content.Add(new PatchSync(NCPFileStructure.networkDevelop, NCPFileStructure.localDevelop, filename, fileStorage, fwLookup, revLookup, SQL));
                 }
             });
             CanTransferandUnzip = true;

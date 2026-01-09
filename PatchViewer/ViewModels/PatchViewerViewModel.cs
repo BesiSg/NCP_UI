@@ -1,9 +1,8 @@
 ﻿using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Windows.Controls.Primitives;
 using Utility.EventAggregator;
 using Utility.Lib.PatchSync;
 using Utility.Lib.SettingHandler;
+using Utility.SQL;
 
 namespace PatchViewerModule.ViewModels
 {
@@ -61,7 +60,7 @@ namespace PatchViewerModule.ViewModels
             set => SetValue(() => CanOpenLocalFolderCommand, value);
         }
 
-        public PatchViewerViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> revlookup) : base(ea, datasetcfg, forwardlookup, revlookup)
+        public PatchViewerViewModel(IEventAggregator ea, SettingHandler<PatchFilesStorage> datasetcfg, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> revlookup, SQLLib sql) : base(ea, datasetcfg, forwardlookup, revlookup, sql)
         {
             CanTransferandUnzip = true;
             CanPopulate = true;

@@ -16,6 +16,7 @@
             <Button Height="30" Width="30" Margin="0,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}">
                 <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
             </Button>
+            <CheckBox Height="30" Width="30" Margin="10,0,0,0" IsChecked="{Binding AutoUpdateEnabled}"/>
         </StackPanel>
         <DataGrid Background="LightGray" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" ItemsSource="{Binding Content}" CanUserDeleteRows="False"
                                 AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="FullRow" EnableRowVirtualization="True" GridLinesVisibility="All" 

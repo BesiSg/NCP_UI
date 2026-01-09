@@ -139,9 +139,9 @@ namespace Utility
         public XmlDictionary<string, T> Data { get; set; } = new XmlDictionary<string, T>();
         public virtual T Get(string key)
         {
-            if (!Data.ContainsKey(key))
-                Data[key] = new T();
-            return Data[key];
+            if (!ContainsKey(key))
+                this[key] = new T();
+            return this[key];
         }
         public List<string> GetKeys()
         {
@@ -156,7 +156,7 @@ namespace Utility
             get
             {
                 // Following trick can reduce the range check by one
-                if (!Data.ContainsKey(key))
+                if (!ContainsKey(key))
                 {
                     throw new KeyNotFoundException(key);
                 }
