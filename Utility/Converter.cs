@@ -22,6 +22,30 @@ namespace Utility
             return DateTime.Now;
         }
     }
+
+    public class BoolToIconConverter : IValueConverter
+    {
+        public object Convert(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture)
+        {
+            if (value is bool isDirectory)
+                return isDirectory ? "📁" : "📄";
+
+            return "📄";
+        }
+
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
     [ValueConversion(typeof(bool), typeof(Visibility))]
     public class BooltoVis : IValueConverter
     {
@@ -52,5 +76,22 @@ namespace Utility
             return (bool)value ? "True" : "False";
 
         }
+    }
+    [ValueConversion(typeof(bool), typeof(string))]
+    public class BooltoBrowseCommits : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+        object parameter, System.Globalization.CultureInfo culture)
+        {
+            return (bool)value ? "browse" : "commits";
+
+        }
+        public object ConvertBack(object value, Type targetType,
+        object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is null || (string)value == string.Empty) return false;
+            return ((string)value) == "browse";
+        }
+
     }
 }

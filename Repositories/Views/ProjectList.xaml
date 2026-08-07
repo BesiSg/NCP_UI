@@ -3,27 +3,77 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:IssuelistModule="clr-namespace:RepositoriesModule.Views"
              mc:Ignorable="d"
+             xmlns:local="clr-namespace:UI.Class;assembly=UIs"
              xmlns:utility="clr-namespace:Utility;assembly=Utility" 
              xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
              prism:ViewModelLocator.AutoWireViewModel="True">
+    <UserControl.Resources>
+        <local:BindingProxy x:Key="VmProxy"
+                            Data="{Binding}" />
+    </UserControl.Resources>
     <StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <Button Height="30" Width="30" Margin="0,0,10,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Import" Command="{Binding ImportDataCommand}">
-                <Image Source="/Resource/Recipe_Load.png" Style="{StaticResource ImgBtn_W25H25}"/>
-            </Button>
-            <Button Height="30" Width="30" Margin="0,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}">
-                <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
-            </Button>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Button Height="30" Width="30" Margin="0,0,10,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Import" Command="{Binding ImportDataCommand}">
+                    <Image Source="/Resource/Recipe_Load.png" Style="{StaticResource ImgBtn_W25H25}"/>
+                </Button>
+                <Button Height="30" Width="30" Margin="0,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}">
+                    <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
+                </Button>
+                <CheckBox Content="{Binding RightClickOption, Converter={StaticResource BooltoBrowseCommits}}" Height="30" Margin="10,0,0,0" IsChecked="{Binding RightClickOption}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,10">
+                <Label Style="{StaticResource LB_ItemTitle}" Content="keyword"/>
+                <TextBox Margin="10,0,0,0"
+                     Width="200"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="KeyUp">
+                            <prism:InvokeCommandAction
+                Command="{Binding SearchCommand}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </TextBox>
+            </StackPanel>
         </StackPanel>
+
         <DataGrid Background="LightGray" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" ItemsSource="{Binding Content}" CanUserDeleteRows="False"
                                 AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="FullRow" EnableRowVirtualization="True" GridLinesVisibility="All" 
-                                ColumnHeaderHeight="30" RowHeight="25" SelectedItem="{Binding Selected}" Height="780">
+                                ColumnHeaderHeight="30" RowHeight="25" SelectedItem="{Binding Selected}" Width="280" Height="730">
+            <!--<i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDoubleClick">
+                    <prism:InvokeCommandAction
+                Command="{Binding FetchCommand}"
+                CommandParameter="{Binding SelectedItem,
+                                           RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>-->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="Open Project"
+                              Command="{Binding Data.OpenCommand, Source={StaticResource VmProxy}}"
+                              CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="LightBlue"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Key" Binding="{Binding key}" IsReadOnly="True" Width="200" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False" />
+                <DataGridTextColumn Header="Key" Binding="{Binding key}" IsReadOnly="True" Width="200" TextBlock.TextAlignment="Left" CanUserSort="True" CanUserResize="True" CanUserReorder="False"/>
             </DataGrid.Columns>
         </DataGrid>
     </StackPanel>
-
 </UserControl>

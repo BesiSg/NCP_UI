@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+</PropertyGroup>
+
+<ItemGroup>
+  <ProjectReference Include="..\PDFHelper\PDFHelper.csproj" />
+  <ProjectReference Include="..\Utility\Utility.csproj" />
+</ItemGroup>
+
+</Project>

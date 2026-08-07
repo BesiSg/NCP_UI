@@ -1,0 +1,156 @@
+<UserControl x:Class="NewSystemCreationHelperModule.Views.DragnDropDatasheet"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             xmlns:utility="clr-namespace:Utility;assembly=Utility" 
+             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:local="clr-namespace:NewSystemCreationHelperModule.Model" xmlns:viewmodels="clr-namespace:NewSystemCreationHelperModule.ViewModels"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+    <i:Interaction.Behaviors>
+        <local:FileDropBehavior
+            Command="{Binding FilesDroppedCommand}" />
+    </i:Interaction.Behaviors>
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="10*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Button Margin="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="auto" Width="auto" Style="{StaticResource Button_FrameMenu}" Grid.Row="0" Grid.ColumnSpan="1" Grid.Column="3" Grid.RowSpan="1" Content="FetchFromPDF" Command="{Binding FetchFromPDFCommand}"/>
+        <Button Margin="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="auto" Width="auto" Style="{StaticResource Button_FrameMenu}" Grid.Row="0" Grid.ColumnSpan="1" Grid.Column="4" Grid.RowSpan="1" Content="ClearList" Command="{Binding ClearListCommand}"/>
+        <Button Margin="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="auto" Width="auto" Style="{StaticResource Button_FrameMenu}" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="5" Grid.RowSpan="1" Content="Generate System Workspace" Command="{Binding GenerateWorkspaceCommand}"/>
+        <DataGrid Grid.ColumnSpan="5" Grid.RowSpan="5" Grid.Column="3" Grid.Row="1" ItemsSource="{Binding Properties}"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          CanUserDeleteRows="False"
+          IsReadOnly="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="NCP"
+                        Binding="{Binding NCP, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn Header="Ref System SN"
+                        Binding="{Binding RefSystemSN, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn Header="System SN"
+                        Binding="{Binding SystemSN, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn Header="SAP Number"
+                        Binding="{Binding SapNumber, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn Header="Customer"
+                        Binding="{Binding CustomerAbbr, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTemplateColumn Header="Datasheet">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Datasheet"
+                            Command="{Binding DataContext.OpenFileCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding Datasheet}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <TextBlock 
+            FontSize="14" Style="{StaticResource TB_MainTitle}" Grid.ColumnSpan="2" Grid.RowSpan="1" Grid.Column="0" Grid.Row="0"
+            Text="Drop PDF files here" />
+        <ListBox BorderThickness="1" Margin="5" Grid.Row="1" Grid.RowSpan="5" Grid.ColumnSpan="3" Grid.Column="0" ItemsSource="{Binding PdfFiles}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <TabControl BorderThickness="1" BorderBrush="Aquamarine" Grid.Row="6" Grid.RowSpan="11" Grid.Column="0" Grid.ColumnSpan="8" FontSize="13">
+            <TabItem Header="Explorer">
+                <ContentControl prism:RegionManager.RegionName="FilesystemRegion" Margin="5"/>
+            </TabItem>
+            <TabItem Header="NewSystems">
+                <DataGrid ItemsSource="{Binding NewSystemWorkspacePath}"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          CanUserDeleteRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="NCP"
+                        Binding="{Binding Properties.NCP, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Ref Sys#"
+                        Binding="{Binding Properties.RefSystemSN, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Sys#"
+                        Binding="{Binding Properties.SystemSN, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="SAP #"
+                        Binding="{Binding Properties.SapNumber, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Customer"
+                        Binding="{Binding Properties.CustomerAbbr, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTemplateColumn Header="Datasheet">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Datasheet"
+                            Command="{Binding DataContext.OpenFolderCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding Paths.Datasheet}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Workspace">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Workspace"
+                            Command="{Binding DataContext.OpenFolderCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding Paths.Workspace}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="RefSysCFG">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="RefSysCFG"
+                            Command="{Binding DataContext.OpenFolderCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding Paths.RefSysCFG}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="SysCfg">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="SysCfg"
+                            Command="{Binding DataContext.OpenFolderCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding Paths.SysCfg}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="License">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="License"
+                            Command="{Binding DataContext.OpenFolderCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding Paths.License}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

@@ -44,6 +44,11 @@
             get => this.GetValue(() => this.start);
             set => this.SetValue(() => this.start, value);
         }
+        public int nextPageStart
+        {
+            get => this.GetValue(() => this.nextPageStart);
+            set => this.SetValue(() => this.nextPageStart, value);
+        }
     }
 
     public class Repository : BaseUtility

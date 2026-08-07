@@ -1,5 +1,4 @@
 ﻿using Atlassian.Jira;
-using RestSharp;
 using Utility;
 
 namespace JiraWrapper
@@ -9,13 +8,13 @@ namespace JiraWrapper
         private Jira _jira;
         public JIRA(string PAT)
         {
-            _jira = Jira.CreateRestClient("https://jira.besi.com", null, null);
+            _jira = Jira.CreateRestClient("https://besi.atlassian.net/", null, null);
             _jira.RestClient.RestSharpClient.Authenticator = new PATTokenAuthentication(PAT);
         }
-        public System.Collections.Generic.IEnumerable<Issue> GetIssues(Project project, DateTime changeDate)
+        public IEnumerable<Issue> GetIssues(Project project, DateTime changeDate)
         {
             var issues = new List<Issue>();
-            var projectJql = project == Project.All ? "FSL, XHD, NCP, AMS-X" : project.ToString();
+            var projectJql = project == Project.All ? "FSL, XHD, FCL, NCP, AMS-X" : project.ToString();
             if (changeDate == null || changeDate.CompareTo(new DateTime()) == 0) changeDate = new DateTime(2019, 01, 01);
             var changeDateJql = changeDate.ToString("yyyy-MM-dd");
             int startAt = 0;
@@ -33,14 +32,14 @@ namespace JiraWrapper
             listoftasks.ForEach(x => issues.AddRange(x.Result));
             return issues;
         }
-        public System.Collections.Generic.IEnumerable<Comment> GetComments(string ticket)
+        public IEnumerable<Comment> GetComments(string ticket)
         {
             var issue = _jira.Issues.GetIssueAsync(ticket).Result;
             if (issue != null)
                 return issue.GetCommentsAsync().Result;
             return null;
         }
-        public System.Collections.Generic.IEnumerable<Comment> GetComments(Issue issue)
+        public IEnumerable<Comment> GetComments(Issue issue)
         {
             if (issue != null)
                 return issue.GetCommentsAsync().Result;
@@ -66,30 +65,9 @@ namespace JiraWrapper
             {
                 var orga = comment.AuthorUser.DisplayName.Contains('@') ? comment.AuthorUser.DisplayName.Split('@')[0] : "Besi";
                 var text = comment.Body.GetBeautifulSoup();
-                summary += $"\n-----\nComment from {comment.AuthorUser.DisplayName} of {orga}: {text}";
+                summary += $"\n-----\nComment from {comment.AuthorUser.DisplayName} of {orga} at {comment.CreatedDate}: {text}";
             }
             return summary;
-        }
-    }
-    public enum Project
-    {
-        AMSX,
-        FSL,
-        NCP,
-        XHD,
-        All,
-    }
-    public class PATTokenAuthentication : RestSharp.Authenticators.IAuthenticator
-    {
-        private string _token;
-        public PATTokenAuthentication(string token)
-        {
-            _token = token;
-        }
-
-        public void Authenticate(IRestClient client, IRestRequest request)
-        {
-            request.AddHeader("Authorization", $"Bearer {_token}");
         }
     }
 }

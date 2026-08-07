@@ -52,6 +52,12 @@
             get => this.GetValue(() => this.latestCommit);
             set => this.SetValue(() => this.latestCommit, value);
         }
+        public long committertimestamp
+        {
+            get => this.GetValue(() => this.committertimestamp);
+            set => this.SetValue(() => this.committertimestamp, value);
+        }
+
         public void UpdateTag(Tag source)
         {
             displayId = source.displayId;

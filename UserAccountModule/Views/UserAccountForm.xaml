@@ -7,9 +7,22 @@
              xmlns:prism="http://prismlibrary.com/"
              prism:ViewModelLocator.AutoWireViewModel="True">
     <Border Style="{StaticResource FrameWithShadow}">
-        <StackPanel Name="Token" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,10,0,10">
-            <Label Style="{StaticResource LB_ItemContent}" Content="BB HTML Access Token" Width="150"/>
-            <TextBox Height="25" Margin="10,0,0,0" Text="{Binding UserAccount.BBHTMLToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="400"/>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Name="Email" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,10,0,10">
+                <Label Style="{StaticResource LB_ItemContent}" Content="Email" Width="150"/>
+                <TextBox Height="25" Margin="10,0,0,0" Text="{Binding UserAccount.Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="400"/>
+            </StackPanel>
+            <StackPanel Name="Token" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,10,0,10">
+                <Label Style="{StaticResource LB_ItemContent}" Content="BB HTML Access Token" Width="150"/>
+                <TextBox Height="25" Margin="10,0,0,0" Text="{Binding UserAccount.BBHTMLToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="400"/>
+            </StackPanel>
+            <StackPanel Name="JiraPAToken" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,10,0,10">
+                <Label Style="{StaticResource LB_ItemContent}" Content="JiraPAToken" Width="150"/>
+                <TextBox Height="25" Margin="10,0,0,0" Text="{Binding UserAccount.JiraPAToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="400"/>
+            </StackPanel>
+            <Button Height="30" Width="30" Margin="0,0,0,0" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}">
+                <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
+            </Button>
         </StackPanel>
     </Border>
 </UserControl>

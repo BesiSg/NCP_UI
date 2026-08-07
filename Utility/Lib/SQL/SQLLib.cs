@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.IO;
 using System.Reflection;
-using System.Windows.Documents;
 using Utility.Lib.BitBucketRepositories;
 
 namespace Utility.SQL

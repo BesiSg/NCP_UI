@@ -1,8 +1,10 @@
-﻿namespace BitBucketHandler
+﻿using Utility;
+
+namespace BitBucketHandler
 {
     public interface iBitBucketHandler
     {
-        Task GetAllAsync(string key);
+        Task<ErrorResult> GetAllAsync(string key);
     }
 
 }

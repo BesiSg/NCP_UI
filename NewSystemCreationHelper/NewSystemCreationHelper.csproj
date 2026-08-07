@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <TargetFramework>net8.0-windows</TargetFramework>
+      <Nullable>enable</Nullable>
+      <UseWPF>true</UseWPF>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BitBucket\BitBucket.csproj" />
+    <ProjectReference Include="..\SystemDatasheetHandler\SystemDatasheetHandler.csproj" />
+    <ProjectReference Include="..\Utility\Utility.csproj" />
+    <ProjectReference Include="..\UIs\UIs.csproj" />
+  </ItemGroup>
+
+</Project>

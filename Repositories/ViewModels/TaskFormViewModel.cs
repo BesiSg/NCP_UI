@@ -1,10 +1,12 @@
 ﻿using BitBucket;
 using System.Collections.ObjectModel;
+using System.Net.Http;
 using Utility;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketActive.Task;
 using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.SettingHandler;
+using Utility.Lib.Storage;
 using Utility.Lib.UserAccount;
 
 namespace RepositoriesModule.ViewModels
@@ -16,11 +18,11 @@ namespace RepositoriesModule.ViewModels
         public ObservableCollection<Branch> Branches { get; set; } = new ObservableCollection<Branch>();
         public BitBucketTask Form { get; private set; }
         private SettingHandler<UserAccount> UserAccountHandler;
-        private SettingHandler<BitBucketStorage<Tag>> TagDatasetHandler;
-        private SettingHandler<BitBucketStorage<Commit>> CommitDatasetHandler;
-        private SettingHandler<BitBucketStorage<Branch>> BranchDatasetHandler;
-        private SettingHandler<BitBucketStorage<Repository>> RepositoryDatasetHandler;
-        private SettingHandler<BitBucketStorage<Project>> ProjectDatasetHandler;
+        private SettingHandler<StorageDat<Tag>> TagDatasetHandler;
+        private SettingHandler<StorageDat<Commit>> CommitDatasetHandler;
+        private SettingHandler<StorageDat<Branch>> BranchDatasetHandler;
+        private SettingHandler<StorageDat<Repository>> RepositoryDatasetHandler;
+        private SettingHandler<StorageDat<Project>> ProjectDatasetHandler;
         public AsyncDelegateCommand GetNextTagCommand { get; protected set; }
         public AsyncDelegateCommand SaveDataCommand { get; protected set; }
 
@@ -41,7 +43,7 @@ namespace RepositoriesModule.ViewModels
         private BitBucketTagHandler _tagHandler;
 
         IEventAggregator _ea;
-        public TaskFormViewModel(IEventAggregator ea, SettingHandler<BitBucketStorage<Tag>> tag, SettingHandler<BitBucketStorage<Commit>> commit, SettingHandler<BitBucketStorage<Branch>> branch, SettingHandler<BitBucketStorage<Repository>> repository, SettingHandler<BitBucketStorage<Project>> project, SettingHandler<UserAccount> userAccHandler)
+        public TaskFormViewModel(IEventAggregator ea, SettingHandler<StorageDat<Tag>> tag, SettingHandler<StorageDat<Commit>> commit, SettingHandler<StorageDat<Branch>> branch, SettingHandler<StorageDat<Repository>> repository, SettingHandler<StorageDat<Project>> project, SettingHandler<UserAccount> userAccHandler, HttpClient client)
         {
             _ea = ea;
             Form = new BitBucketTask(ea);
@@ -61,7 +63,7 @@ namespace RepositoriesModule.ViewModels
             UpdateRepository();
             UpdateBranch();
 
-            _tagHandler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, CommitDatasetHandler.Get);
+            _tagHandler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, CommitDatasetHandler.Get, client);
 
             _ea.GetEvent<ProjectSelectedChanged>().Subscribe(ProjectReceived);
             _ea.GetEvent<RepositorySelectedChanged>().Subscribe(RepositoryReceived);

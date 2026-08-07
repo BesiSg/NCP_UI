@@ -15,58 +15,257 @@ using System.Windows.Data;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-
+using System.Runtime.InteropServices;
 namespace Utility
 {
+    public sealed class NaturalSortComparer : IComparer<string>
+    {
+        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+        private static extern int StrCmpLogicalW(string x, string y);
+
+        public int Compare(string? x, string? y)
+        {
+            return StrCmpLogicalW(x ?? string.Empty, y ?? string.Empty);
+        }
+    }
+
+    public static class Constants
+    {
+        public const string BasePath = @"D:\NCP\Machines";
+        public const string RefSysCfg = "ref_cfg";
+        public const string Datasheet = "datasheet";
+        public const string SysCfg = "cfg";
+        public const string Licenses = "licenses";
+        public const string Release = "release";
+        public const string NCPC = "NCPC";
+    }
+
+
     public abstract class ViewModelBase : BaseUtility
     {
         public ViewModelBase()
         {
             var type = GetType();
-            var properties = type.GetProperties();
+
+            var properties = type.GetProperties(
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic);
+
             foreach (var property in properties)
             {
-                if (property.PropertyType == typeof(AsyncDelegateCommand))
+                if (!property.CanWrite)
+                    continue;
+
+                if (property.GetIndexParameters().Length > 0)
+                    continue;
+
+                var propertyType = property.PropertyType;
+
+                var executeMethodName = property.Name.Replace("Command", "");
+
+                if (propertyType == typeof(AsyncDelegateCommand))
                 {
-                    var executeMethodName = (property.Name).Replace("Command", "");
-                    property.SetValue(this, CreateCommand(executeMethodName));
+                    var command = CreateAsyncCommand(executeMethodName);
+
+                    if (command != null)
+                        property.SetValue(this, command);
+                }
+                else if (propertyType.IsGenericType &&
+                         propertyType.GetGenericTypeDefinition() == typeof(AsyncDelegateCommand<>))
+                {
+                    var command = CreateAsyncGenericCommand(executeMethodName, propertyType);
+
+                    if (command != null)
+                        property.SetValue(this, command);
+                }
+                else if (propertyType == typeof(DelegateCommand))
+                {
+                    var command = CreateCommand(executeMethodName);
+
+                    if (command != null)
+                        property.SetValue(this, command);
+                }
+                else if (propertyType.IsGenericType &&
+                         propertyType.GetGenericTypeDefinition() == typeof(DelegateCommand<>))
+                {
+                    var command = CreateGenericCommand(executeMethodName, propertyType);
+
+                    if (command != null)
+                        property.SetValue(this, command);
                 }
             }
-
         }
-        protected AsyncDelegateCommand CreateCommand(string executeMethodName)
+
+        protected AsyncDelegateCommand CreateAsyncCommand(string executeMethodName)
         {
-            var method = GetType().GetMethod(executeMethodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            var method = GetType().GetMethod(
+                executeMethodName,
+                BindingFlags.Instance |
+                BindingFlags.NonPublic |
+                BindingFlags.Public);
+
             if (method == null)
                 return null;
 
-            bool isAsync = typeof(Task).IsAssignableFrom(method.ReturnType);
-
-            AsyncDelegateCommand command;
-
-            if (isAsync)
-            {
-                var asyncHandler = (Func<Task>)Delegate.CreateDelegate(typeof(Func<Task>), this, method);
-                //command = DelegateCommand.FromAsyncHandler(asyncHandler);
-                command = new AsyncDelegateCommand(asyncHandler);
-            }
-            else
-            {
+            if (!typeof(Task).IsAssignableFrom(method.ReturnType))
                 return null;
-            }
-            string canExecutePropName = "Can" + executeMethodName;
-            var canExecuteProp = GetType().GetProperty(canExecutePropName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            if (canExecuteProp != null && canExecuteProp.PropertyType == typeof(bool))
-            {
-                // Build expression: () => this.CanXXX
-                var parameter = System.Linq.Expressions.Expression.Constant(this);
-                var propertyAccess = System.Linq.Expressions.Expression.Property(parameter, canExecuteProp);
-                var lambda = System.Linq.Expressions.Expression.Lambda<Func<bool>>(propertyAccess);
+            var parameters = method.GetParameters();
 
-                command.ObservesCanExecute(lambda);
-            }
+            if (parameters.Length != 0)
+                return null;
+
+            var asyncHandler = (Func<Task>)Delegate.CreateDelegate(
+                typeof(Func<Task>),
+                this,
+                method);
+
+            var command = new AsyncDelegateCommand(asyncHandler);
+
+            ApplyCanExecute(command, executeMethodName);
+
             return command;
+        }
+        protected DelegateCommand CreateCommand(string executeMethodName)
+        {
+            var method = GetType().GetMethod(
+                executeMethodName,
+                BindingFlags.Instance |
+                BindingFlags.NonPublic |
+                BindingFlags.Public);
+
+            if (method == null)
+                return null;
+
+            if (method.ReturnType != typeof(void))
+                return null;
+
+            var parameters = method.GetParameters();
+
+            if (parameters.Length != 0)
+                return null;
+
+            var handler = (Action)Delegate.CreateDelegate(
+                typeof(Action),
+                this,
+                method);
+
+            var command = new DelegateCommand(handler);
+
+            ApplyCanExecute(command, executeMethodName);
+
+            return command;
+        }
+        protected object CreateGenericCommand(string executeMethodName, Type commandType)
+        {
+            var method = GetType().GetMethod(
+                executeMethodName,
+                BindingFlags.Instance |
+                BindingFlags.NonPublic |
+                BindingFlags.Public);
+
+            if (method == null)
+                return null;
+
+            if (method.ReturnType != typeof(void))
+                return null;
+
+            var commandParameterType = commandType.GetGenericArguments()[0];
+
+            var methodParameters = method.GetParameters();
+
+            if (methodParameters.Length != 1)
+                return null;
+
+            if (methodParameters[0].ParameterType != commandParameterType)
+                return null;
+
+            var actionType = typeof(Action<>)
+                .MakeGenericType(commandParameterType);
+
+            var handler = Delegate.CreateDelegate(
+                actionType,
+                this,
+                method);
+
+            var command = Activator.CreateInstance(
+                commandType,
+                handler);
+
+            ApplyCanExecute(command, executeMethodName);
+
+            return command;
+        }
+        protected object CreateAsyncGenericCommand(string executeMethodName, Type commandType)
+        {
+            var method = GetType().GetMethod(
+                executeMethodName,
+                BindingFlags.Instance |
+                BindingFlags.NonPublic |
+                BindingFlags.Public);
+
+            if (method == null)
+                return null;
+
+            if (!typeof(Task).IsAssignableFrom(method.ReturnType))
+                return null;
+
+            var commandParameterType = commandType.GetGenericArguments()[0];
+
+            var methodParameters = method.GetParameters();
+
+            if (methodParameters.Length != 1)
+                return null;
+
+            if (methodParameters[0].ParameterType != commandParameterType)
+                return null;
+
+            var funcType = typeof(Func<,>).MakeGenericType(
+                commandParameterType,
+                typeof(Task));
+
+            var asyncHandler = Delegate.CreateDelegate(
+                funcType,
+                this,
+                method);
+
+            var command = Activator.CreateInstance(
+                commandType,
+                asyncHandler);
+
+            ApplyCanExecute(command, executeMethodName);
+
+            return command;
+        }
+
+        private void ApplyCanExecute(object command, string executeMethodName)
+        {
+            string canExecutePropName = "Can" + executeMethodName;
+
+            var canExecuteProp = GetType().GetProperty(
+                canExecutePropName,
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic);
+
+            if (canExecuteProp == null)
+                return;
+
+            if (canExecuteProp.PropertyType != typeof(bool))
+                return;
+
+            var instance = System.Linq.Expressions.Expression.Constant(this);
+            var propertyAccess = System.Linq.Expressions.Expression.Property(instance, canExecuteProp);
+            var lambda = System.Linq.Expressions.Expression.Lambda<Func<bool>>(propertyAccess);
+
+            var observesCanExecuteMethod = command.GetType().GetMethod(
+                "ObservesCanExecute",
+                new[] { typeof(Expression<Func<bool>>) });
+
+            observesCanExecuteMethod?.Invoke(
+                command,
+                new object[] { lambda });
         }
     }
 
@@ -521,6 +720,8 @@ namespace Utility
             }
             this.ClearErrorFlags();
         }
+        protected bool HasError() => Result.ErrorMessage != string.Empty;
+        protected bool NoError() => Result.ErrorMessage == string.Empty;
         #endregion
         #region Cloneable
         public object Clone() { return this.MemberwiseClone(); }
@@ -695,7 +896,6 @@ namespace Utility
     }
     public class Util
     {
-
         public static void LoadAssemblies(string src)
         {
             var files = Directory.GetFiles(src, "HiPA.*.dll");

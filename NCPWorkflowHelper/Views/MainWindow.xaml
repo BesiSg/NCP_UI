@@ -8,32 +8,39 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
          prism:ViewModelLocator.AutoWireViewModel="True" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
-        Title="MainWindow" Height="1080" Width="1920">
+        Title="NCP Helper" Height="1080" Width="1920">
     <it:Interaction.Triggers>
         <it:EventTrigger EventName="Closing">
             <it:InvokeCommandAction Command="{Binding OnClosingCommand}" />
         </it:EventTrigger>
     </it:Interaction.Triggers>
-    <Grid>
-        <Button Height="30" Width="30" Margin="10" Style="{StaticResource Button_FrameMenu}" ToolTip="Save" Command="{Binding SaveDataCommand}" HorizontalAlignment="Right" VerticalAlignment="Top">
-            <Image Source="/Resource/Save_Icon.png" Style="{StaticResource ImgBtn_W25H25}"/>
-        </Button>
-        <StackPanel Orientation="Horizontal" Margin="0,10,10,0" >
-            <TabControl Margin="10">
-                <TabItem Header="User account" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                    <ContentControl prism:RegionManager.RegionName="UserAccountRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-                </TabItem>
-                <TabItem Header="Fetch branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                    <ContentControl prism:RegionManager.RegionName="FetchBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-                </TabItem>
-                <TabItem Header="Patch Viewer" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                    <ContentControl prism:RegionManager.RegionName="PatchViewerRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-                </TabItem>
-                <TabItem Header="Commit branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
-                    <ContentControl prism:RegionManager.RegionName="CommitBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
-                </TabItem>
-            </TabControl>
-        </StackPanel>
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <TabControl Margin="10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <TabItem Header="User account" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                <ContentControl prism:RegionManager.RegionName="UserAccountRegion" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5"/>
+            </TabItem>
+            <TabItem Header="New system creation helper" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                <Grid Width="1900" Height="970" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <ContentControl Grid.Column="0" Grid.ColumnSpan="1" prism:RegionManager.RegionName="NewSysCreateRegion" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="ReleaseOverAll" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                <ContentControl Width="1900" Height="950" prism:RegionManager.RegionName="ReleaseOverAllHelperRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+            </TabItem>
+            <TabItem Header="Repo Viewer" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                <ContentControl Width="1900" Height="950" prism:RegionManager.RegionName="FetchBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+            </TabItem>
+            <TabItem Header="Patch Viewer" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                <ContentControl prism:RegionManager.RegionName="PatchViewerRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+            </TabItem>
+            <TabItem Header="Commit branch" Style="{StaticResource MahApps.Styles.Control.WindowCommands}">
+                <ContentControl prism:RegionManager.RegionName="CommitBranchRegion" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5"/>
+            </TabItem>
+        </TabControl>
     </Grid>
 
     <!--<TabControl HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="10,0,10,10">

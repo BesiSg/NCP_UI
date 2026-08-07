@@ -10,6 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SecsgemLicenseHandler\LicenseHandler.csproj" />
+    <ProjectReference Include="..\SystemDatasheetHandler\SystemDatasheetHandler.csproj" />
     <ProjectReference Include="..\Utility\Utility.csproj" />
   </ItemGroup>
 

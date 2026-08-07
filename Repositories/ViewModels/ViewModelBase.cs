@@ -4,6 +4,7 @@ using Utility;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.SettingHandler;
+using Utility.Lib.Storage;
 using Utility.Lib.UserAccount;
 
 namespace RepositoriesModule.ViewModels
@@ -11,11 +12,14 @@ namespace RepositoriesModule.ViewModels
     public abstract class ViewModelBase<Tbase> : ViewModelBase
         where Tbase : BaseUtility
     {
+        public List<Tbase> FullContent { get; set; } = new List<Tbase>();
         public ObservableCollection<Tbase> Content { get; set; } = new ObservableCollection<Tbase>();
         protected SettingHandler<UserAccount> UserAccountHandler;
-        protected SettingHandler<BitBucketStorage<Tbase>> DatasetHandler;
+        protected SettingHandler<StorageDat<Tbase>> DatasetHandler;
         public AsyncDelegateCommand ImportDataCommand { get; protected set; }
         public AsyncDelegateCommand SaveDataCommand { get; protected set; }
+        public AsyncDelegateCommand SearchCommand { get; protected set; }
+        public DelegateCommand<Tbase> OpenCommand { get; protected set; }
         protected Project project = null;
         protected Repository repository = null;
         protected Branch branch = null;
@@ -31,18 +35,28 @@ namespace RepositoriesModule.ViewModels
                 PublishEvent(Selected);
             }
         }
+        public string SearchText
+        {
+            get => this.GetValue(() => this.SearchText);
+            set => this.SetValue(() => this.SearchText, value);
+        }
 
         public bool AutoUpdateEnabled
         {
             get => this.GetValue(() => this.AutoUpdateEnabled);
             set => this.SetValue(() => this.AutoUpdateEnabled, value);
         }
-
+        public bool RightClickOption //true: browse, false:commits
+        {
+            get => this.GetValue(() => this.RightClickOption);
+            set => this.SetValue(() => this.RightClickOption, value);
+        }
         protected iBitBucketHandler _handler;
         protected IEventAggregator _ea;
-        public ViewModelBase(IEventAggregator ea, SettingHandler<BitBucketStorage<Tbase>> datasetcfg, SettingHandler<UserAccount> userAccHandler)
+        public ViewModelBase(IEventAggregator ea, SettingHandler<StorageDat<Tbase>> datasetcfg, SettingHandler<UserAccount> userAccHandler)
         {
             _ea = ea;
+            AutoUpdateEnabled = true;
             UserAccountHandler = userAccHandler;
             DatasetHandler = datasetcfg;
             DatasetHandler.Get.Changed += Changed;
@@ -57,12 +71,33 @@ namespace RepositoriesModule.ViewModels
             UpdateCollection();
         }
 
-        protected abstract void UpdateCollection();
+        protected void UpdateCollection()
+        {
+            SearchText = string.Empty;
+            FullContent.Clear();
+            Content.Clear();
+            if (SkipUpdate()) return;
+            UpdateBothList(GetDisplayData());
+        }
+        protected void UpdateBothList(List<Tbase> source)
+        {
+            FullContent.AddRange(source);
+            Content.AddRange(source);
+        }
+        protected void UpdateDisplay(List<Tbase> source)
+        {
+            Content.Clear();
+            Content.AddRange(source);
+        }
         protected abstract void BranchReceived(Branch message);
         protected abstract void ProjectReceived(Project message);
         protected abstract void RepositoryReceived(Repository message);
         protected abstract Task SaveData();
         protected abstract Task ImportData();
+        protected abstract Task Search();
+        protected abstract void Open(Tbase source);
         protected abstract void PublishEvent(Tbase selected);
+        protected abstract bool SkipUpdate();
+        protected abstract List<Tbase> GetDisplayData();
     }
 }

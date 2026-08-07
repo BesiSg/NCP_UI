@@ -1115,8 +1115,6 @@
         </Setter>
     </Style>
     <Style x:Key="Button_FrameMenu" TargetType="Button">
-        <Setter Property="Height" Value="56"/>
-        <Setter Property="Width" Value="56"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">

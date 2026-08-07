@@ -287,7 +287,7 @@ namespace Utility.Lib.PatchSync
                         if (parts[^1].EndsWith(".patch")) parts[^1] = parts[^1].Replace(".patch", "");
                         lines[parts[0]] = parts[^1];
                     }
-                    var listofnames= new List<string>();
+                    var listofnames = new List<string>();
                     foreach (var item in lines)
                     {
                         listofnames.Add($"{item.Key} {item.Value}");

@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BitBucket\BitBucket.csproj" />
+    <ProjectReference Include="..\NCPBitbucket\NCPBitbucket.csproj" />
+    <ProjectReference Include="..\PDFHelper\PDFHelper.csproj" />
     <ProjectReference Include="..\UIs\UIs.csproj" />
     <ProjectReference Include="..\Utility\Utility.csproj" />
   </ItemGroup>

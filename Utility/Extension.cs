@@ -1,13 +1,29 @@
 ﻿using HtmlAgilityPack;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
+using Utility.Lib.Ticket;
 
 namespace Utility
 {
     public static class Extension
     {
+        public static string ToPascalCase(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return value;
+
+            var words = Regex.Split(value, @"[\s_\-]+")
+                             .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            return string.Concat(
+                words.Select(w =>
+                    char.ToUpperInvariant(w[0]) +
+                    w.Substring(1).ToLowerInvariant()));
+        }
         public static string GetAttri<T>(this MemberInfo memberInfo)
         {
             var attrs = System.Attribute.GetCustomAttributes(memberInfo, typeof(TextAttribute));
@@ -121,7 +137,110 @@ namespace Utility
             return Regex.Replace(cleanedtext, re, "");
         }
 
+        public static string ToPlainText(this AdfDoc doc)
+        {
+            if (doc?.Content == null || doc.Content.Count == 0)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+            foreach (var node in doc.Content)
+                AppendNode(sb, node);
+
+            return sb.ToString().Trim();
+        }
+
+        private static void AppendNode(StringBuilder sb, AdfNode node)
+        {
+            if (node == null) return;
+
+            switch (node.Type)
+            {
+                case "paragraph":
+                    if (node.Content != null)
+                    {
+                        foreach (var child in node.Content)
+                            AppendNode(sb, child);
+                    }
+                    sb.AppendLine(); // end of paragraph
+                    break;
+
+                case "text":
+                    if (!string.IsNullOrEmpty(node.Text))
+                        sb.Append(node.Text);
+                    break;
+
+                case "hardBreak":
+                    sb.AppendLine();
+                    break;
+
+                default:
+                    // For any other node types, just walk children if present.
+                    if (node.Content != null)
+                    {
+                        foreach (var child in node.Content)
+                            AppendNode(sb, child);
+                    }
+                    break;
+            }
+        }
+        public static string GetDescription(this Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+
+            var attr = field?
+                .GetCustomAttributes(typeof(DescriptionAttribute), false)
+                .Cast<DescriptionAttribute>()
+                .FirstOrDefault();
+
+            return attr?.Description ?? value.ToString();
+        }
+
+        public static TEnum ToEnumByAttribute<TEnum>(this string value)
+            where TEnum : struct, Enum
+        {
+            foreach (var field in typeof(TEnum).GetFields(
+                         BindingFlags.Public | BindingFlags.Static))
+            {
+                var attribute = field.GetCustomAttribute<NameAttribute>();
+
+                if (attribute != null &&
+                    string.Equals(attribute.Name,
+                                  value,
+                                  StringComparison.OrdinalIgnoreCase))
+                {
+                    return (TEnum)field.GetValue(null)!;
+                }
+            }
+
+            throw new ArgumentException(
+                $"No {typeof(TEnum).Name} found for '{value}'.");
+        }
+
+        public static bool TryToEnumByAttribute<TEnum>(
+            this string value,
+            out TEnum result)
+            where TEnum : struct, Enum
+        {
+            foreach (var field in typeof(TEnum).GetFields(
+                         BindingFlags.Public | BindingFlags.Static))
+            {
+                var attribute = field.GetCustomAttribute<NameAttribute>();
+
+                if (attribute != null &&
+                    string.Equals(attribute.Name,
+                                  value,
+                                  StringComparison.OrdinalIgnoreCase))
+                {
+                    result = (TEnum)field.GetValue(null)!;
+                    return true;
+                }
+            }
+
+            result = default;
+            return false;
+        }
     }
+
     public static class ObjectCopy
     {
         private static readonly MethodInfo CloneMethod = typeof(Object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -238,6 +357,22 @@ namespace Utility
                 }
             }
             return false;
+        }
+    }
+
+
+    public interface INameAttribute
+    {
+        string Name { get; }
+    }
+    [AttributeUsage(AttributeTargets.Field)]
+    public class NameAttribute : Attribute, INameAttribute
+    {
+        public string Name { get; }
+
+        public NameAttribute(string name)
+        {
+            Name = name;
         }
     }
 }

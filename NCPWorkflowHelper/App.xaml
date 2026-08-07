@@ -14,6 +14,8 @@
             <local1:DateToString x:Key="DateToString"/>
             <local1:BooltoVis x:Key="BooltoVis"/>
             <local1:stringtoBool x:Key="stringtoBool"/>
+            <local1:BoolToIconConverter x:Key="BoolToIconConverter"/>
+            <local1:BooltoBrowseCommits x:Key="BooltoBrowseCommits"/>
         </ResourceDictionary>
     </unity:PrismApplication.Resources>
 </unity:PrismApplication>

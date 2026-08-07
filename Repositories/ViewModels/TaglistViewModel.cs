@@ -1,25 +1,18 @@
 ﻿using BitBucket;
-using System.Collections.ObjectModel;
-using Utility;
+using System.Net.Http;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.SettingHandler;
+using Utility.Lib.Storage;
 using Utility.Lib.UserAccount;
 
 namespace RepositoriesModule.ViewModels
 {
     public class TaglistViewModel : ViewModelBase<Commit>
     {
-        public TaglistViewModel(IEventAggregator ea, SettingHandler<BitBucketStorage<Commit>> datasetcfg, SettingHandler<UserAccount> userAccHandler) : base(ea, datasetcfg, userAccHandler)
+        public TaglistViewModel(IEventAggregator ea, SettingHandler<StorageDat<Commit>> datasetcfg, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, datasetcfg, userAccHandler)
         {
-            _handler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, datasetcfg.Get);
-        }
-
-        protected override void UpdateCollection()
-        {
-            Content.Clear();
-            if (project == null || repository == null || branch == null || !DatasetHandler.Get.Storage.ContainsKey($"{project?.key} {repository?.slug} {branch?.displayId}")) return;
-            Content.AddRange(DatasetHandler.Get.Storage[$"{project?.key} {repository?.slug} {branch.displayId}"].ToList());
+            _handler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, datasetcfg.Get, client);
         }
 
         protected override async void BranchReceived(Branch message)
@@ -55,6 +48,26 @@ namespace RepositoriesModule.ViewModels
         protected override void PublishEvent(Commit selected)
         {
             _ea.GetEvent<CommitSelectedChanged>().Publish(selected);
+        }
+
+        protected override bool SkipUpdate()
+        {
+            return project == null || repository == null || branch == null || !DatasetHandler.Get.Storage.ContainsKey($"{project?.key} {repository?.slug} {branch?.displayId}");
+        }
+
+        protected override List<Commit> GetDisplayData()
+        {
+            return DatasetHandler.Get.Storage[$"{project?.key} {repository?.slug} {branch.displayId}"].OrderBy(item => item.displayId).ToList();
+        }
+
+        protected override void Open(Commit source)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task Search()
+        {
+            throw new NotImplementedException();
         }
     }
 }

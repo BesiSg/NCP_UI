@@ -6,7 +6,7 @@
              xmlns:RepositoriesModule="clr-namespace:RepositoriesModule.Views"
              mc:Ignorable="d"
              xmlns:utility="clr-namespace:Utility;assembly=Utility" 
-             d:DesignHeight="450" d:DesignWidth="1910"
+             d:DesignWidth="1910"
              xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
              prism:ViewModelLocator.AutoWireViewModel="True">
     <StackPanel>
@@ -15,7 +15,7 @@
             <RepositoriesModule:ProjectList/>
             <RepositoriesModule:Repositorylist Margin="10,0,0,0"/>
             <RepositoriesModule:Branchlist Margin="10,0,0,0"/>
-            <RepositoriesModule:Taglist Margin="10,0,0,0"/>
+            <!--<RepositoriesModule:Taglist Margin="10,0,0,0"/>-->
         </StackPanel>
     </StackPanel>
 
