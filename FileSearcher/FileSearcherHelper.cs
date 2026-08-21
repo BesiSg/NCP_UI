@@ -21,46 +21,6 @@ namespace FileSearcher
             _pattern = pattern;
         }
 
-        //public Task Search()
-        //{
-        //    return Task.Run(() =>
-        //    {
-        //        ReleaseOverall.Clear();
-        //        IEnumerable<string> result = Enumerable.Empty<string>();
-
-        //        if (!string.IsNullOrWhiteSpace(_matchheader) ||
-        //            !string.IsNullOrWhiteSpace(_matchend))
-        //        {
-        //            result = Directory.EnumerateDirectories(
-        //                _root,
-        //                $"{_matchheader}*{_matchend}");
-        //        }
-        //        else if (!string.IsNullOrWhiteSpace(_matchanywhere))
-        //        {
-        //            result = Directory.EnumerateDirectories(
-        //                _root,
-        //                $"*{_matchanywhere}*");
-        //        }
-
-        //        var files = new List<PathName>();
-        //        foreach (var folder in result)
-        //        {
-
-        //            foreach (var file in Directory.EnumerateFiles(folder, $"*{_extension}"))
-        //            {
-        //                var match = Regex.Match(Path.GetFileName(file), _pattern, RegexOptions.IgnoreCase);
-        //                if (!match.Success)
-        //                    continue;
-        //                var version = match.Groups["Version"].Value.ToLower();
-        //                var customer = match.Groups["Customer"].Value.ToLower();
-        //                if (!ReleaseOverall.ContainsKey($"support/{customer}/{version}"))
-        //                    ReleaseOverall[$"support/{customer}/{version}"] = new List<PathName>();
-        //                ReleaseOverall[$"support/{customer}/{version}"].Add(new PathName(file));
-        //            }
-        //        }
-        //    });
-        //}
-
         public async Task Search(CancellationToken token = default)
         {
             var regex = new Regex(
@@ -95,7 +55,7 @@ namespace FileSearcher
                             .EnumerateFiles(folder, $"*{_extension}")
                             .Select(file =>
                             {
-                                var match = regex.Match(Path.GetFileName(file));
+                                var match = regex.Match(Path.GetFileNameWithoutExtension(file));
 
                                 if (!match.Success)
                                     return null;

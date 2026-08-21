@@ -1,13 +1,7 @@
 ﻿using BitBucket;
-using FileSearcher;
-using Microsoft.Extensions.FileSystemGlobbing.Internal;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Http;
-using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
-using Unity.Injection;
 using Utility;
 using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.SettingHandler;
@@ -15,35 +9,30 @@ using Utility.Lib.UserAccount;
 
 namespace ReleaseOverallSyncHelper.ViewModels
 {
-    public class ReleaseOverallViewerBitBucketViewModel : ReleaseOverallViewerBase
+    public class ReleaseOverallViewerBitBucketViewModel : ReleaseOverallViewerBase<Tag>
     {
-        const string pattern = @"^R(?<Version>\d+\.\d+\.\d+)\.(?<Customer>[A-Za-z]+?)(?<Revision>\d+(?:-[A-Za-z0-9]+)?|-[A-Za-z0-9]+)$";
         private BitBucketRestAPI _bitBucketRestAPI;
         protected const string _baseURL = "http://bb.eu.besi.corp/rest/api/1.0";
         protected const string _limitposURL = "&limit=1000";
-        public ObservableCollection<Tag> Collection { get; } = new();
-        public List<Tag> FullCollection { get; } = new();
         public ReleaseOverallViewerBitBucketViewModel(SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(userAccHandler, client)
         {
             _bitBucketRestAPI = new BitBucketRestAPI(_baseURL, _limitposURL, userAccHandler.Get.BBHTMLToken, client);
             CanStart = true;
+            SearchText = string.Empty;
         }
-        public AsyncDelegateCommand StartCommand { get; protected set; }
-        public AsyncDelegateCommand<Tag> OpenCommitCommand { get; protected set; }
-        public AsyncDelegateCommand<Tag> OpenCfgCommand { get; protected set; }
-
-        private async Task Start()
+        protected override async Task Start()
         {
             CanStart = false;
             try
             {
-                Collection.Clear();
+                SearchText = string.Empty;
+                ClearAll();
                 var listoftags = new List<Tag>();
                 var tags = await _bitBucketRestAPI.GetTags("ncp", "release_overall");
                 var filteredtags = new Dictionary<string, List<Tag>>();
                 foreach (var tag in tags)
                 {
-                    var match = Regex.Match(tag.Key, pattern, RegexOptions.IgnoreCase);
+                    var match = Regex.Match(tag.Key, _searchpattern, RegexOptions.IgnoreCase);
                     if (!match.Success)
                         continue;
                     var key = $"support/{match.Groups["Customer"].ToString().ToLower()}/{match.Groups["Version"]}";
@@ -60,29 +49,20 @@ namespace ReleaseOverallSyncHelper.ViewModels
                 CanStart = true;
             }
         }
-        public bool CanStart
+        protected override void OpenPath(Tag source)
         {
-            get => GetValue(() => CanStart);
-            set => SetValue(() => CanStart, value);
-        }
-        private CancellationTokenSource? _readCfgCts;
-        private async Task OpenCommit(Tag item)
-        {
-            await Task.Run(() =>
+            if (source == null || string.IsNullOrWhiteSpace(source.latestCommit))
+                return;
+            var url = $"http://bb.eu.besi.corp/projects/NCP/repos/release_overall/commits/{source.latestCommit}";
+            Process.Start(new ProcessStartInfo
             {
-                if (item == null || string.IsNullOrWhiteSpace(item.latestCommit))
-                    return;
-                var url = $"http://bb.eu.besi.corp/projects/NCP/repos/release_overall/commits/{item.latestCommit}";
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = url,
-                    UseShellExecute = true
-                });
+                FileName = url,
+                UseShellExecute = true
             });
         }
-        private async Task OpenCfg(Tag item)
+        protected override async Task OpenCfg(Tag source)
         {
-            if (item == null || string.IsNullOrWhiteSpace(item.latestCommit))
+            if (source == null || string.IsNullOrWhiteSpace(source.latestCommit))
                 return;
 
             // Cancel previous file loading if still running
@@ -100,9 +80,9 @@ namespace ReleaseOverallSyncHelper.ViewModels
                     "NCP",
                     "release_overall",
                     "Release.cfg",
-                    item.latestCommit,
+                    source.latestCommit,
                     _readCfgCts.Token);
-                PopulateUnitSelections(item.displayId, CfgContent);
+                PopulateUnitSelections(source.displayId, CfgContent);
             }
             catch (OperationCanceledException)
             {
@@ -113,11 +93,14 @@ namespace ReleaseOverallSyncHelper.ViewModels
                 CfgContent = $"Failed to read file:\r\n{ex.Message}";
             }
         }
-
         private void PopulatePath(List<Tag> tags)
         {
-            Collection.Clear();
-            Collection.AddRange(tags);
+            UpdateBothList(tags);
+        }
+        protected override async Task Search()
+        {
+            var filtered = await Task.Run(() => FullContent.Where(content => content.displayId.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase)).ToList());
+            UpdateDisplay(filtered);
         }
     }
 }

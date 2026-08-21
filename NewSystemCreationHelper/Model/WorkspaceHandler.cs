@@ -1,12 +1,9 @@
 using BitBucket;
-using BitBucketHandler;
 using JiraWrapper;
 using LicenseHandler;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using SystemDatasheetHandler;
-using Utility;
 using Utility.Lib.Datasheet;
 using Utility.Lib.Workspace;
 

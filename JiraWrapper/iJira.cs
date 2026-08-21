@@ -1,5 +1,6 @@
 ﻿using Atlassian.Jira;
 using RestSharp;
+using RestSharp.Authenticators;
 using Utility;
 
 namespace JiraWrapper
@@ -31,17 +32,23 @@ namespace JiraWrapper
         XHD,
         All,
     }
-    public class PATTokenAuthentication : RestSharp.Authenticators.IAuthenticator
+
+    public class PATTokenAuthentication : IAuthenticator
     {
-        private string _token;
+        private readonly string _token;
+
         public PATTokenAuthentication(string token)
         {
             _token = token;
         }
 
-        public void Authenticate(IRestClient client, IRestRequest request)
+        public ValueTask Authenticate(IRestClient client, RestRequest request, CancellationToken cancellationToken = default)
         {
-            request.AddHeader("Authorization", $"Bearer {_token}");
+            request.AddOrUpdateHeader(
+                "Authorization",
+                $"Bearer {_token}");
+
+            return ValueTask.CompletedTask;
         }
     }
 }

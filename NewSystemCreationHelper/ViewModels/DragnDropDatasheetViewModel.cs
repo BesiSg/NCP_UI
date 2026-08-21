@@ -8,11 +8,10 @@ using System.Net.Http;
 using System.Windows;
 using SystemDatasheetHandler;
 using Utility;
-using Utility.Lib.BitBucketRepositories;
+using Utility.Lib.AtlassianService;
 using Utility.Lib.Datasheet;
 using Utility.Lib.NewSystemWorkspace;
 using Utility.Lib.SettingHandler;
-using Utility.Lib.Storage;
 using Utility.Lib.UserAccount;
 
 namespace NewSystemCreationHelperModule.ViewModels
@@ -36,7 +35,7 @@ namespace NewSystemCreationHelperModule.ViewModels
         private AtlassianJira _jira;
         protected const string _baseURL = "http://bb.eu.besi.corp/rest/api/1.0";
         protected const string _limitposURL = "&limit=1000";
-        public DragnDropDatasheetViewModel(IEventAggregator ea, SettingHandler<UserAccount> userAccHandler, SettingHandler<NewSystemStorage> newsystemhandler, HttpClient httpclient)
+        public DragnDropDatasheetViewModel(IEventAggregator ea, SettingHandler<UserAccount> userAccHandler, SettingHandler<NewSystemStorage> newsystemhandler, HttpClient httpclient, AtlassianService atlassianService)
         {
             UserAccountHandler = userAccHandler;
             _newsystemHandler = newsystemhandler;
@@ -45,7 +44,7 @@ namespace NewSystemCreationHelperModule.ViewModels
             CanGenerateWorkspace = true;
             CanClearList = true;
             _bbHandler = new BitBucketRestAPI(_baseURL, _limitposURL, userAccHandler.Get.BBHTMLToken, httpclient);
-            _jira = new AtlassianJira(userAccHandler.Get);
+            _jira = new AtlassianJira(userAccHandler.Get, atlassianService);
             _newsystemHandler.Get.Changed += Get_Changed;
             PopulateNewSystem();
         }

@@ -11,7 +11,7 @@ namespace RepositoriesModule.ViewModels
 {
     public class BranchlistViewModel : ViewModelBase<Branch>
     {
-        public BranchlistViewModel(IEventAggregator ea, SettingHandler<StorageDat<Branch>> datasetcfg, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, datasetcfg, userAccHandler)
+        public BranchlistViewModel(IEventAggregator ea, SettingHandler<StorageDatList<Branch>> datasetcfg, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, datasetcfg, userAccHandler)
         {
             _handler = new BitBucketBranchHandler(UserAccountHandler.Get.BBHTMLToken, datasetcfg.Get, client);
         }
@@ -70,8 +70,6 @@ namespace RepositoriesModule.ViewModels
             var browsecommit = RightClickOption ? "browse?at=refs%2Fheads%2F" : "commits?until=refs%2Fheads%2F";
             var branch = source.displayId.Replace("/", "%2F");
             var url = $"http://bb.eu.besi.corp/projects/{project.key}/repos/{repository.slug}/{browsecommit}{branch}";
-        //http://bb.eu.besi.corp/projects/NCP/repos/units_pr3n/browse?at=refs%2Fheads%2Fsupport%2Fbedu%2Fv2.14.9
-        //http://bb.eu.besi.corp/projects/NCP/repos/units_pr3n/commits?until=refs%2Fheads%2Fsupport%2Fbedu%2Fv2.14.9
             Process.Start(new ProcessStartInfo
             {
                 FileName = url,
@@ -81,7 +79,7 @@ namespace RepositoriesModule.ViewModels
 
         protected override async Task Search()
         {
-            var filtered = await Task.Run(() => FullContent.Where(content => content.displayId.Contains(SearchText)).ToList());
+            var filtered = await Task.Run(() => FullContent.Where(content => content.displayId.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase)).ToList());
             UpdateDisplay(filtered);
         }
     }

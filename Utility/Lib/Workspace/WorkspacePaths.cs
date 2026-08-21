@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Utility.Lib.Workspace
+﻿namespace Utility.Lib.Workspace
 {
     public class WorkspacePaths : BaseUtility
     {
@@ -42,8 +36,9 @@ namespace Utility.Lib.Workspace
             License = _license;
         }
         public WorkspacePaths() { }
-        public void Copy(WorkspacePaths source) {
-            Workspace=source.Workspace;
+        public void Copy(WorkspacePaths source)
+        {
+            Workspace = source.Workspace;
             RefSysCFG = source.RefSysCFG;
             Datasheet = source.Datasheet;
             SysCfg = source.SysCfg;

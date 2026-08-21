@@ -1,8 +1,6 @@
 ﻿using BitBucket;
-using NCPBitbucket;
 using System.Diagnostics;
 using System.Net.Http;
-using System.Windows;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.SettingHandler;
@@ -13,7 +11,7 @@ namespace RepositoriesModule.ViewModels
 {
     public class ProjectListViewModel : ViewModelBase<Project>
     {
-        public ProjectListViewModel(IEventAggregator ea, SettingHandler<StorageDat<Project>> dataset, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, dataset, userAccHandler)
+        public ProjectListViewModel(IEventAggregator ea, SettingHandler<StorageDatList<Project>> dataset, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, dataset, userAccHandler)
         {
             _handler = new BitBucketProjectHandler(UserAccountHandler.Get.BBHTMLToken, dataset.Get, client);
         }
@@ -74,7 +72,7 @@ namespace RepositoriesModule.ViewModels
 
         protected override async Task Search()
         {
-            var filtered= await Task.Run(() => FullContent.Where(content => content.key.Contains(SearchText)).ToList());
+            var filtered = await Task.Run(() => FullContent.Where(content => content.key.Contains(SearchText)).ToList());
             UpdateDisplay(filtered);
         }
     }

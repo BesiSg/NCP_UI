@@ -1,7 +1,5 @@
 ﻿using BitBucketHandler;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Utility;
 using Utility.Lib.BitBucketRepositories;
@@ -9,11 +7,12 @@ using Utility.Lib.Storage;
 
 namespace BitBucket
 {
-    public class BitBucketTagHandler(string token, StorageDat<Commit> dataset, HttpClient client) : BitBucket<StorageDat<Commit>>(token, dataset, client), iBitBucketHandler
+    //this uses a different strategy than BitBucketCommitHandler. This seaches for all Tags in the repository instead of by branches in the repository.
+    public class BitBucketTagHandler(string token, StorageDatList<Tag> dataset, HttpClient client) : BitBucket<StorageDatList<Tag>>(token, dataset, client), iBitBucketHandler
     {
-        public (Commit, string) GetLatestTagAndNext(string projectkey, string reposlug, string branchname)
+        public (Tag, string) GetLatestTagAndNext(string projectkey, string reposlug)
         {
-            var key = $"{projectkey} {reposlug} {branchname}";
+            var key = $"{projectkey} {reposlug}";
             if (!_dataset.Storage.ContainsKey(key)) return (null, string.Empty);
             var latest = _dataset.Storage[key].FirstOrDefault(tag => tag.displayId != string.Empty && tag.displayId != null && tag.latestCommit != string.Empty && tag.latestCommit != null);
             if (latest == null) return (null, string.Empty);
@@ -32,45 +31,28 @@ namespace BitBucket
             var nextrev = int.Parse(digits) + 1;
             return tag + nextrev.ToString();
         }
-        public async Task<ErrorResult> GetAllAsync(string key)
+        public async Task<ErrorResult> GetAllAsync(string key)//$"{project.key} {repository.slug}"
         {
             ClearErrorFlags();
             var text = key.Split(' ');
             try
             {
-                if (text.Length != 3) CheckAndThrowIfError($"Expected Key length =3, actual key length {text.Length}");
+                if (text.Length != 2) CheckAndThrowIfError($"Expected Key length =2, actual key length {text.Length}");
             }
             catch (Exception e) { CatchAndPromptErr(e); }
             if (NoError())
             {
                 var projectkey = text[0];
                 var reposlug = text[1];
-                var branchname = text[2];
-                var taskgetcommits = GetAllCommitsOnBranchAsync(projectkey, reposlug, branchname);
-                var taskgettags = _bitBucket.GetTags(projectkey, reposlug);
-                await Task.WhenAll(taskgetcommits, taskgettags);
+                var dictkey = $"{projectkey} {reposlug}";
+                var tags = await _bitBucket.GetTags(projectkey, reposlug);
                 var tagsOnBranch = new List<Tag>();
-                var commits = _dataset.Storage[$"{projectkey} {reposlug} {branchname}"];
                 lock (_dataset)
                 {
-                    foreach (var commit in commits)
-                    {
-                        if (taskgettags.Result.ContainsKey(commit.id))
-                        {
-                            commit.UpdateTag(taskgettags.Result[commit.id]);
-                        }
-                    }
+                    _dataset.Replace(tags.Values, dictkey);
                 }
             }
             return Result;
-        }
-        private async Task GetAllCommitsOnBranchAsync(string projectkey, string reposlug, string branchname)
-        {
-            var commits = await _bitBucket.GetCommitsOnBranch(projectkey, reposlug, branchname);
-            lock (_dataset)
-            {
-                _dataset.Update(commits, $"{projectkey} {reposlug} {branchname}");
-            }
         }
     }
 }

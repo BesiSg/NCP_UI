@@ -8,9 +8,9 @@ using Utility.Lib.UserAccount;
 
 namespace RepositoriesModule.ViewModels
 {
-    public class TaglistViewModel : ViewModelBase<Commit>
+    public class TaglistViewModel : ViewModelBase<Tag>
     {
-        public TaglistViewModel(IEventAggregator ea, SettingHandler<StorageDat<Commit>> datasetcfg, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, datasetcfg, userAccHandler)
+        public TaglistViewModel(IEventAggregator ea, SettingHandler<StorageDatList<Tag>> datasetcfg, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, datasetcfg, userAccHandler)
         {
             _handler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, datasetcfg.Get, client);
         }
@@ -45,9 +45,9 @@ namespace RepositoriesModule.ViewModels
             await _handler.GetAllAsync($"{project.key} {repository.slug} {branch.displayId}");
         }
 
-        protected override void PublishEvent(Commit selected)
+        protected override void PublishEvent(Tag selected)
         {
-            _ea.GetEvent<CommitSelectedChanged>().Publish(selected);
+            _ea.GetEvent<TagSelectedChanged>().Publish(selected);
         }
 
         protected override bool SkipUpdate()
@@ -55,12 +55,12 @@ namespace RepositoriesModule.ViewModels
             return project == null || repository == null || branch == null || !DatasetHandler.Get.Storage.ContainsKey($"{project?.key} {repository?.slug} {branch?.displayId}");
         }
 
-        protected override List<Commit> GetDisplayData()
+        protected override List<Tag> GetDisplayData()
         {
             return DatasetHandler.Get.Storage[$"{project?.key} {repository?.slug} {branch.displayId}"].OrderBy(item => item.displayId).ToList();
         }
 
-        protected override void Open(Commit source)
+        protected override void Open(Tag source)
         {
             throw new NotImplementedException();
         }

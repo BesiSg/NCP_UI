@@ -1,7 +1,6 @@
 ﻿using BitBucket;
 using System.Diagnostics;
 using System.Net.Http;
-using System.Windows.Controls.Primitives;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.SettingHandler;
@@ -12,7 +11,7 @@ namespace RepositoriesModule.ViewModels
 {
     public class RepositorylistViewModel : ViewModelBase<Repository>
     {
-        public RepositorylistViewModel(IEventAggregator ea, SettingHandler<StorageDat<Repository>> datasetcfg, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, datasetcfg, userAccHandler)
+        public RepositorylistViewModel(IEventAggregator ea, SettingHandler<StorageDatList<Repository>> datasetcfg, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(ea, datasetcfg, userAccHandler)
         {
             _handler = new BitBucketRepositoryHandler(UserAccountHandler.Get.BBHTMLToken, datasetcfg.Get, client);
         }

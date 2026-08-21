@@ -1,5 +1,6 @@
 ﻿using BitBucketHandler;
 using System.Collections.ObjectModel;
+using System.Windows;
 using Utility;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketRepositories;
@@ -15,7 +16,7 @@ namespace RepositoriesModule.ViewModels
         public List<Tbase> FullContent { get; set; } = new List<Tbase>();
         public ObservableCollection<Tbase> Content { get; set; } = new ObservableCollection<Tbase>();
         protected SettingHandler<UserAccount> UserAccountHandler;
-        protected SettingHandler<StorageDat<Tbase>> DatasetHandler;
+        protected SettingHandler<StorageDatList<Tbase>> DatasetHandler;
         public AsyncDelegateCommand ImportDataCommand { get; protected set; }
         public AsyncDelegateCommand SaveDataCommand { get; protected set; }
         public AsyncDelegateCommand SearchCommand { get; protected set; }
@@ -53,7 +54,7 @@ namespace RepositoriesModule.ViewModels
         }
         protected iBitBucketHandler _handler;
         protected IEventAggregator _ea;
-        public ViewModelBase(IEventAggregator ea, SettingHandler<StorageDat<Tbase>> datasetcfg, SettingHandler<UserAccount> userAccHandler)
+        public ViewModelBase(IEventAggregator ea, SettingHandler<StorageDatList<Tbase>> datasetcfg, SettingHandler<UserAccount> userAccHandler)
         {
             _ea = ea;
             AutoUpdateEnabled = true;
@@ -73,11 +74,15 @@ namespace RepositoriesModule.ViewModels
 
         protected void UpdateCollection()
         {
-            SearchText = string.Empty;
-            FullContent.Clear();
-            Content.Clear();
-            if (SkipUpdate()) return;
-            UpdateBothList(GetDisplayData());
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                SearchText = string.Empty;
+                FullContent.Clear();
+                Content.Clear();
+                if (SkipUpdate()) return;
+                UpdateBothList(GetDisplayData());
+            });
+
         }
         protected void UpdateBothList(List<Tbase> source)
         {

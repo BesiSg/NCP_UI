@@ -1,15 +1,12 @@
 ﻿using BitBucketHandler;
-using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using Utility;
 using Utility.Lib.BitBucketRepositories;
 using Utility.Lib.Storage;
 
 namespace BitBucket
 {
-    public class BitBucketRepositoryHandler(string token, StorageDat<Repository> dataset, HttpClient client) : BitBucket<StorageDat<Repository>>(token, dataset, client), iBitBucketHandler
+    public class BitBucketRepositoryHandler(string token, StorageDatList<Repository> dataset, HttpClient client) : BitBucket<StorageDatList<Repository>>(token, dataset, client), iBitBucketHandler
     {
         public async Task<ErrorResult> GetAllAsync(string key)//string projectKey
         {
@@ -19,7 +16,7 @@ namespace BitBucket
             {
                 lock (_dataset)
                 {
-                    _dataset.Update(listofRepos, key);
+                    _dataset.Replace(listofRepos, key);
                 }
             }
             return Result;

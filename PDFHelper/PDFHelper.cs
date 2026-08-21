@@ -90,7 +90,6 @@
 
 
 
-using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows;
 using UglyToad.PdfPig;
@@ -139,7 +138,7 @@ namespace PDFHelper
 
             foreach (var page in _pages)
             {
-                var textbypage= new StringBuilder();
+                var textbypage = new StringBuilder();
                 var words = page.GetWords()
                     .OrderByDescending(w => w.BoundingBox.Bottom)
                     .ThenBy(w => w.BoundingBox.Left)

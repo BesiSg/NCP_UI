@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NCPBitbucket", "NCPBitbucke
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Git", "Git\Git.csproj", "{8D50E347-952A-4CC8-AD39-1D5683F5F2E9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiWrapper", "WikiWrapper\WikiWrapper.csproj", "{494B18FD-7F4B-4472-BFBA-B8947BC6F390}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -191,6 +193,14 @@ Global
 		{8D50E347-952A-4CC8-AD39-1D5683F5F2E9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8D50E347-952A-4CC8-AD39-1D5683F5F2E9}.Release|x64.ActiveCfg = Release|Any CPU
 		{8D50E347-952A-4CC8-AD39-1D5683F5F2E9}.Release|x64.Build.0 = Release|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Debug|x64.Build.0 = Debug|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Release|Any CPU.Build.0 = Release|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Release|x64.ActiveCfg = Release|Any CPU
+		{494B18FD-7F4B-4472-BFBA-B8947BC6F390}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,12 +1,14 @@
 ﻿using System.IO;
 using Utility;
+using Utility.Lib.AtlassianService;
 using Utility.Lib.BitBucketRepositories;
-using Utility.Lib.Datasheet;
 using Utility.Lib.NewSystemWorkspace;
 using Utility.Lib.PatchSync;
+using Utility.Lib.Release;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.Storage;
 using Utility.Lib.UserAccount;
+using Utility.Lib.Wiki;
 using Utility.SQL;
 
 namespace NCPWorkflowHelper.ViewModels
@@ -17,28 +19,33 @@ namespace NCPWorkflowHelper.ViewModels
         public DelegateCommand ImportDataCommand { get; private set; }
         public DelegateCommand OnClosingCommand { get; private set; }
         private SettingHandler<UserAccount> UserAccountCfgHandler { get; set; }
-        private SettingHandler<StorageDat<Project>> ProjectDataHandler { get; set; }
-        private SettingHandler<StorageDat<Branch>> BranchDataHandler { get; set; }
-        private SettingHandler<StorageDat<Repository>> RepositoryDataHandler { get; set; }
-        private SettingHandler<StorageDat<Commit>> CommitDataHandler { get; set; }
-        private SettingHandler<StorageDat<Tag>> TagDataHandler { get; set; }
+        private SettingHandler<StorageDatList<Project>> ProjectDataHandler { get; set; }
+        private SettingHandler<StorageDatList<Branch>> BranchDataHandler { get; set; }
+        private SettingHandler<StorageDatList<Repository>> RepositoryDataHandler { get; set; }
+        private SettingHandler<StorageDatList<Commit>> CommitDataHandler { get; set; }
+        private SettingHandler<StorageDatList<Tag>> TagDataHandler { get; set; }
+        private SettingHandler<StorageDat<CustomerAbbreviation>> CustAbbreDataHandler { get; set; }
+        private SettingHandler<ReleaseStorage> ReleaseStorageHandler { get; set; }
         private SettingHandler<NewSystemStorage> NewSystemHandler { get; set; }
         private SettingHandler<PatchFilesStorage> PatchDataHandler { get; set; }
         private SettingHandler<PatchForwardLookup> PatchForwardLUHandler { get; set; }
         private SettingHandler<PatchReverseLookup> PatchReverseLUHandler { get; set; }
+
         private SQLLib sQLLib { get; set; }
         string StartupPath = AppDomain.CurrentDomain.BaseDirectory;
         string UserAccount_Filename = "Data\\UserAcc.xml";
         string ProjectDataset_Filename = "Data\\ProjectDataset.xml";
         string RepositoryDataset_Filename = "Data\\RepositoryDataset.xml";
         string NewSystemDataset_Filename = "Data\\NewSystemDataset.xml";
+        string ReleaseStorageDataset_Filename = "Data\\ReleaseStorageDataset.xml";
         string CommitDataset_Filename = "Data\\CommitDataset.xml";
         string BranchDataset_Filename = "Data\\BranchDataset.xml";
         string TagDataset_Filename = "Data\\TagDataset.xml";
+        string CustAbbreDataset_Filename = "Data\\CustAbbreDataset.xml";
         string PatchDataset_Filename = "Data\\PatchDataset.xml";
         string PatchForward_Filename = "Data\\PatchForwardLookup.xml";
         string PatchReverse_Filename = "Data\\PatchReverseLookup.xml";
-        public MainWindowViewModel(SettingHandler<UserAccount> useraccountHandler, SettingHandler<StorageDat<Project>> projectDataHandler, SettingHandler<StorageDat<Branch>> branchDataHandler, SettingHandler<StorageDat<Repository>> repositoryDataHandler, SettingHandler<StorageDat<Commit>> commitDataHandler, SettingHandler<StorageDat<Tag>> tagDataHandler, SettingHandler<NewSystemStorage> newsystemhandler, SettingHandler<PatchFilesStorage> patchDataHandler, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup, SQLLib sql)
+        public MainWindowViewModel(SettingHandler<UserAccount> useraccountHandler, SettingHandler<StorageDatList<Project>> projectDataHandler, SettingHandler<StorageDatList<Branch>> branchDataHandler, SettingHandler<StorageDatList<Repository>> repositoryDataHandler, SettingHandler<StorageDatList<Commit>> commitDataHandler, SettingHandler<StorageDat<CustomerAbbreviation>> custabbreDataHandler, SettingHandler<StorageDatList<Tag>> tagDataHandler, SettingHandler<NewSystemStorage> newsystemhandler, SettingHandler<PatchFilesStorage> patchDataHandler, SettingHandler<PatchForwardLookup> forwardlookup, SettingHandler<PatchReverseLookup> reverselookup, SettingHandler<ReleaseStorage> releasestorage, SQLLib sql, AtlassianService atlassianService)
         {
             UserAccountCfgHandler = useraccountHandler;
             ProjectDataHandler = projectDataHandler;
@@ -50,7 +57,8 @@ namespace NCPWorkflowHelper.ViewModels
             PatchForwardLUHandler = forwardlookup;
             PatchReverseLUHandler = reverselookup;
             NewSystemHandler = newsystemhandler;
-
+            ReleaseStorageHandler = releasestorage;
+            CustAbbreDataHandler = custabbreDataHandler;
             UserAccountCfgHandler.SetPathnLoad(Path.Combine(StartupPath, UserAccount_Filename));
             ProjectDataHandler.SetPathnLoad(Path.Combine(StartupPath, ProjectDataset_Filename));
             RepositoryDataHandler.SetPathnLoad(Path.Combine(StartupPath, RepositoryDataset_Filename));
@@ -62,7 +70,9 @@ namespace NCPWorkflowHelper.ViewModels
             PatchReverseLUHandler.SetPathnLoad(Path.Combine(StartupPath, PatchReverse_Filename));
             PatchReverseLUHandler.SetPathnLoad(Path.Combine(StartupPath, PatchReverse_Filename));
             NewSystemHandler.SetPathnLoad(Path.Combine(StartupPath, NewSystemDataset_Filename));
-
+            ReleaseStorageHandler.SetPathnLoad(Path.Combine(StartupPath, ReleaseStorageDataset_Filename));
+            CustAbbreDataHandler.SetPathnLoad(Path.Combine(StartupPath, CustAbbreDataset_Filename));
+            atlassianService.InitClient(UserAccountCfgHandler.Get.Email, UserAccountCfgHandler.Get.JiraPAToken);
             sQLLib = new SQLLib();
             sQLLib.CreateTables();
             SaveDataCommand = new DelegateCommand(() => SaveData());
@@ -79,6 +89,8 @@ namespace NCPWorkflowHelper.ViewModels
             TagDataHandler.Save();
             PatchDataHandler.Save();
             NewSystemHandler.Save();
+            ReleaseStorageHandler.Save();
+            CustAbbreDataHandler.Save();
         }
         private void ImportData()
         {

@@ -1,42 +1,32 @@
 ﻿using FileSearcher;
-using NCPBitbucket;
-using ReleaseOverallSyncHelper.Models;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
-using System.Windows;
 using Utility;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.UserAccount;
 
 namespace ReleaseOverallSyncHelper.ViewModels
 {
-    public class ReleaseOverallViewerViewModel : ReleaseOverallViewerBase
+    public class ReleaseOverallViewerViewModel : ReleaseOverallViewerBase<PathName>
     {
         private string _rootPath = string.Empty;
-        private string _searchpattern = string.Empty;
         private FolderSearcherHelper _foldersearcher;
-        public ObservableCollection<PathName> Collection { get; } = new();
-        public ReleaseOverallViewerViewModel(string path, string searchpattern, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(userAccHandler, client)
+        public ReleaseOverallViewerViewModel(string path, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(userAccHandler, client)
         {
             _rootPath = path;
-            _searchpattern = searchpattern;
             _foldersearcher = new FolderSearcherHelper(_rootPath, string.Empty, "patch", string.Empty, ".cfg", _searchpattern);
             CanStart = true;
             Message = string.Empty;
+            SearchText = string.Empty;
         }
-        public AsyncDelegateCommand StartCommand { get; protected set; }
-        public AsyncDelegateCommand<PathName> OpenCfgCommand { get; protected set; }
-        private async Task Start()
+        protected override async Task Start()
         {
             CanStart = false;
             try
             {
-                Collection.Clear();
+                SearchText = string.Empty;
+                ClearAll();
                 await _foldersearcher.Search();
                 PopulatePath();
             }
@@ -45,29 +35,23 @@ namespace ReleaseOverallSyncHelper.ViewModels
                 CanStart = true;
             }
         }
-        public bool CanStart
+        protected override void OpenPath(PathName source)
         {
-            get => GetValue(() => CanStart);
-            set => SetValue(() => CanStart, value);
-        }
-        private void HookSelectionChanged(ReleaseOverallUnitSelection item)
-        {
-            item.PropertyChanged += (_, e) =>
+            if (source == null || string.IsNullOrEmpty(source.Fullpath))
+                return;
+            Process.Start(new ProcessStartInfo
             {
-                if (e.PropertyName == nameof(ReleaseOverallUnitSelection.Selected))
-                {
-                    AllSelected = UnitSelections.All(x => x.Selected);
-                }
-            };
+                FileName = "explorer.exe",
+                Arguments = $"/select,\"{source.Fullpath}\"",
+                UseShellExecute = true
+            });
         }
-        private CancellationTokenSource? _readCfgCts;
-        private async Task OpenCfg(PathName item)
+        protected override async Task OpenCfg(PathName source)
         {
-            selectedPath = item;
-            if (item == null || string.IsNullOrWhiteSpace(item.Fullpath))
+            if (source == null || string.IsNullOrWhiteSpace(source.Fullpath))
                 return;
 
-            if (!File.Exists(item.Fullpath))
+            if (!File.Exists(source.Fullpath))
                 return;
 
             // Cancel previous file loading if still running
@@ -81,13 +65,13 @@ namespace ReleaseOverallSyncHelper.ViewModels
             {
                 CfgContent = "Loading...";
 
-                string content = await File.ReadAllTextAsync(item.Fullpath, token);
+                string content = await File.ReadAllTextAsync(source.Fullpath, token);
 
                 // Only update if this task was not cancelled
                 token.ThrowIfCancellationRequested();
 
                 CfgContent = content;
-                PopulateUnitSelections(Path.GetFileNameWithoutExtension(selectedPath.Fullpath), CfgContent);
+                PopulateUnitSelections(Path.GetFileNameWithoutExtension(source.Fullpath), CfgContent);
             }
             catch (OperationCanceledException)
             {
@@ -98,36 +82,17 @@ namespace ReleaseOverallSyncHelper.ViewModels
                 CfgContent = $"Failed to read file:\r\n{ex.Message}";
             }
         }
-        private PathName selectedPath;
-        private const string EndMarker =
-            "# This is a dummy entry to satisfy the CopyRelease script";
-
-        private static readonly Regex UnitRegex =
-            new(
-                @"^(?<Unit>[A-Z0-9]{4}|Version_MMI)\s*(?:=)?\s+(?<Version>[VR]\S+)",
-                RegexOptions.Compiled |
-                RegexOptions.IgnoreCase |
-                RegexOptions.Multiline);
         private void PopulatePath()
         {
-            Collection.Clear();
             var keys = _foldersearcher.ReleaseOverall.Keys.OrderBy(x => x, new NaturalSortComparer());
 
             foreach (var key in keys)
-                Collection.AddRange(_foldersearcher.ReleaseOverall[key].OrderBy(x => x.Name, new NaturalSortComparer()));
+                UpdateBothList(_foldersearcher.ReleaseOverall[key].OrderBy(x => x.Name, new NaturalSortComparer()).ToList());
         }
-        public DelegateCommand<PathName> OpenFolderCommand { get; private set; }
-        public bool CanOpenFolder => true;
-        private void OpenFolder(PathName item)
+        protected override async Task Search()
         {
-            if (item == null || string.IsNullOrEmpty(item.Fullpath))
-                return;
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "explorer.exe",
-                Arguments = $"/select,\"{item.Fullpath}\"",
-                UseShellExecute = true
-            });
+            var filtered = await Task.Run(() => FullContent.Where(content => content.Name.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase)).ToList());
+            UpdateDisplay(filtered);
         }
     }
 }

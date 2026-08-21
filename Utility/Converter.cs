@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace Utility
 {
@@ -20,6 +21,26 @@ namespace Utility
                                  DateTimeStyles.None, out Date))
                 return Date;
             return DateTime.Now;
+        }
+    }
+
+    public class EnumToBooleanConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null || parameter == null)
+                return false;
+
+            return value.ToString().Equals(parameter.ToString(),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is bool isChecked) || !isChecked)
+                return Binding.DoNothing;
+
+            return Enum.Parse(targetType, parameter.ToString());
         }
     }
 
@@ -76,6 +97,27 @@ namespace Utility
             return (bool)value ? "True" : "False";
 
         }
+    }
+    [ValueConversion(typeof(SearchResult), typeof(Brushes))]
+    public class SearchResultToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not SearchResult result)
+                return Brushes.Transparent;
+
+            return result switch
+            {
+                SearchResult.NotFinding => Brushes.Transparent,
+                SearchResult.Finding => Brushes.Orange,
+                SearchResult.Found => Brushes.Lime,
+                SearchResult.NotFound => Brushes.Red,
+                _ => Brushes.Transparent
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => Binding.DoNothing;
     }
     [ValueConversion(typeof(bool), typeof(string))]
     public class BooltoBrowseCommits : IValueConverter

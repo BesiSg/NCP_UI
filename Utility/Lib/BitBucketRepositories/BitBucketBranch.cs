@@ -42,6 +42,11 @@
             get => this.GetValue(() => start);
             set => this.SetValue(() => start, value);
         }
+        public int nextPageStart
+        {
+            get => this.GetValue(() => nextPageStart);
+            set => this.SetValue(() => nextPageStart, value);
+        }
         public List<Branch> values { get; set; }
     }
 

@@ -1,13 +1,7 @@
-﻿using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Utility;
 using Utility.Lib.BitBucketRepositories;
 
@@ -28,51 +22,93 @@ namespace BitBucket
             _client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _token);
         }
-        public async Task<Dictionary<string, Tag>> GetTags(string projectkey, string reposlug)
+        public async Task<Dictionary<string, Tag>> GetTags(
+            string projectkey,
+            string reposlug,
+            CancellationToken cancellationToken = default)
         {
-            var tags = new Dictionary<string, Tag>();
-            var tags2 = new Dictionary<string, Tag>();
+            var tags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
+
             int? start = 0;
             bool? isLastPage = false;
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            while (isLastPage == false)
+            var options = new JsonSerializerOptions
             {
-                string url = $"{_baseURL}/projects/{projectkey}/repos/{reposlug}/tags?start={start}{_limitposURL}";
-                var response = await _client.GetAsync(url);
-                if (response.IsSuccessStatusCode)
-                {
+                PropertyNameCaseInsensitive = true
+            };
 
-                    var json = await response.Content.ReadAsStringAsync();
-                    var tagResponse = JsonSerializer.Deserialize<TagResponse>(json, options);
-                    tagResponse.values.ForEach(entry => tags[entry.displayId] = entry);
+            while (!isLastPage.GetValueOrDefault())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    isLastPage = tagResponse.isLastPage;
-                    start = tagResponse.nextPageStart;
-                }
-                else
+                string url =
+                    $"{_baseURL}/projects/{projectkey}/repos/{reposlug}/tags?start={start}{_limitposURL}";
+
+                var response = await _client.GetAsync(
+                    url,
+                    cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    CheckAndThrowIfError(await response.Content.ReadAsStringAsync());
+                    CheckAndThrowIfError(
+                        await response.Content.ReadAsStringAsync(cancellationToken));
+
+                    break;
                 }
+
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                var tagResponse =
+                    JsonSerializer.Deserialize<TagResponse>(json, options);
+
+                if (tagResponse?.values == null)
+                    break;
+
+                foreach (var tag in tagResponse.values)
+                {
+                    tags[tag.displayId] = tag;
+                }
+
+                isLastPage = tagResponse.isLastPage;
+                start = tagResponse.nextPageStart;
             }
+
             return tags;
         }
-        public async Task<List<Commit>> GetCommitsOnBranch(string projectkey, string reposlug, string branchname)
+        public async Task<List<Commit>> GetCommitsOnBranch(
+    string projectkey,
+    string reposlug,
+    string branchname,
+    CancellationToken cancellationToken = default)
         {
             var commits = new List<Commit>();
             int? start = 0;
             bool? isLastPage = false;
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
 
             while (isLastPage == false)
             {
-                string url = $"{_baseURL}/projects/{projectkey}/repos/{reposlug}/commits?until={Uri.EscapeDataString(branchname)}&start={start}{_limitposURL}";
-                var response = await _client.GetAsync(url);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                string url =
+                    $"{_baseURL}/projects/{projectkey}/repos/{reposlug}/commits" +
+                    $"?until={Uri.EscapeDataString(branchname)}" +
+                    $"&start={start}{_limitposURL}";
+
+                var response =
+                    await _client.GetAsync(url, cancellationToken);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var commitResponse = JsonSerializer.Deserialize<CommitResponse>(json, options);
+                    var json =
+                        await response.Content.ReadAsStringAsync(cancellationToken);
+
+                    var commitResponse =
+                        JsonSerializer.Deserialize<CommitResponse>(json, options);
 
                     commits.AddRange(commitResponse.values);
 
@@ -81,107 +117,182 @@ namespace BitBucket
                 }
                 else
                 {
-                    CheckAndThrowIfError(await response.Content.ReadAsStringAsync());
+                    CheckAndThrowIfError(
+                        await response.Content.ReadAsStringAsync(cancellationToken));
                 }
             }
+
             return commits;
         }
-        public async Task<List<Branch>> GetBranchesOnRepository(string projectKey, string repoSlug)//string projectKey, string repoSlug
+        public async Task<List<Branch>> GetBranchesOnRepository(
+           string projectKey,
+           string repoSlug,
+           CancellationToken cancellationToken = default)
         {
-            ClearErrorFlags();
             var allBranches = new List<Branch>();
+
             int start = 0;
             bool isLastPage = false;
-            try
+
+            while (!isLastPage)
             {
-                while (!isLastPage)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                string url =
+                    $"{_baseURL}/projects/{projectKey}/repos/{repoSlug}/branches" +
+                    $"?start={start}&limit={_limitposURL}";
+
+                var response = await _client.GetAsync(url, cancellationToken);
+
+                if ((int)response.StatusCode == 429)
                 {
-                    string url = $"{_baseURL}/projects/{projectKey}/repos/{repoSlug}/branches?start={start}";
+                    var retryAfter =
+                    response.Headers.RetryAfter?.Delta ??
+                    TimeSpan.FromSeconds(10);
 
-                    HttpResponseMessage response = await _client.GetAsync(url);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        var errorContent = await response.Content.ReadAsStringAsync();
-                        CheckAndThrowIfError($"Status code: {response.StatusCode}, Error response: " + errorContent);
-                        break;
-                    }
+                    await Task.Delay(retryAfter, cancellationToken);
 
-                    string json = await response.Content.ReadAsStringAsync();
-                    var branchResponse = JsonSerializer.Deserialize<BranchResponse>(json);
+                    response = await _client.GetAsync(url, cancellationToken);
+                }
 
+                response.EnsureSuccessStatusCode();
+
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                var branchResponse =
+                    JsonSerializer.Deserialize<BranchResponse>(json);
+
+                if (branchResponse?.values != null)
+                {
                     allBranches.AddRange(branchResponse.values);
+                }
 
-                    isLastPage = branchResponse.isLastPage;
-                    start = branchResponse.start + branchResponse.size;
+                isLastPage = branchResponse?.isLastPage ?? true;
+
+                if (!isLastPage)
+                {
+                    start = branchResponse.nextPageStart;
                 }
             }
-            catch (Exception ex)
-            {
-                CatchAndPromptErr(ex);
-            }
+
             return allBranches;
         }
-        public async Task<List<Project>> GetProjects()
+
+        public async Task<List<Project>> GetProjects(
+    CancellationToken cancellationToken = default)
         {
             int? start = 0;
             bool? isLastPage = false;
+
             var projects = new List<Project>();
+
             ClearErrorFlags();
-            var listofRepos = new List<string>();
+
             try
             {
                 while (isLastPage == false)
                 {
-                    // Send GET request
-                    var response = await _client.GetAsync($"{_baseURL}/projects?start={start}{_limitposURL}");
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var response =
+                        await _client.GetAsync(
+                            $"{_baseURL}/projects?start={start}{_limitposURL}",
+                            cancellationToken);
 
                     if (response.IsSuccessStatusCode)
                     {
-                        string responseBody = await response.Content.ReadAsStringAsync();
-                        var projectResponse = JsonSerializer.Deserialize<ProjectResponse>(responseBody);
+                        string responseBody =
+                            await response.Content.ReadAsStringAsync(cancellationToken);
+
+                        var projectResponse =
+                            JsonSerializer.Deserialize<ProjectResponse>(responseBody);
+
                         projects.AddRange(projectResponse.values);
+
                         isLastPage = projectResponse.isLastPage;
                         start = projectResponse.nextPageStart;
                     }
                     else
                     {
-                        var errorContent = await response.Content.ReadAsStringAsync();
-                        CheckAndThrowIfError($"Response code {response.IsSuccessStatusCode}, ErrorContent {errorContent}");
+                        var errorContent =
+                            await response.Content.ReadAsStringAsync(cancellationToken);
+
+                        CheckAndThrowIfError(
+                            $"Response code {response.IsSuccessStatusCode}, ErrorContent {errorContent}");
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 CatchAndPromptErr(ex);
             }
+
             return projects;
         }
-        public async Task<List<Repository>> GetRepositoriesOnProject(string projectKey)
+        public async Task<List<Repository>> GetRepositoriesOnProject(
+    string projectKey,
+    CancellationToken cancellationToken = default)
         {
             ClearErrorFlags();
-            var listofRepos = new List<Repository>();
+
+            var repositories = new List<Repository>();
+
             try
             {
-                // Send GET request
-                HttpResponseMessage response = await _client.GetAsync($"{_baseURL}/projects/{projectKey}/repos?{_limitposURL}");
+                int start = 0;
 
-                if (response.IsSuccessStatusCode)
+                while (true)
                 {
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    var repoResponse = JsonSerializer.Deserialize<RepoResponse>(responseBody);
-                    listofRepos.AddRange(repoResponse.values);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var response = await _client.GetAsync(
+                        $"{_baseURL}/projects/{projectKey}/repos?limit=1000&start={start}",
+                        cancellationToken);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        CheckAndThrowIfError(
+                            await response.Content.ReadAsStringAsync(cancellationToken));
+                        break;
+                    }
+
+                    string responseBody =
+                        await response.Content.ReadAsStringAsync(cancellationToken);
+
+                    var repoResponse = JsonSerializer.Deserialize<RepoResponse>(
+                        responseBody,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                    if (repoResponse?.values == null)
+                        break;
+
+                    repositories.AddRange(repoResponse.values);
+
+                    if (repoResponse.isLastPage)
+                        break;
+
+                    start = repoResponse.nextPageStart;
                 }
-                else
-                {
-                    CheckAndThrowIfError(await response.Content.ReadAsStringAsync());
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
                 CatchAndPromptErr(ex);
             }
-            return listofRepos;
+
+            return repositories;
         }
+
         public async Task<ErrorResult> DownloadFile(
             string project,
             string repo,
@@ -189,42 +300,68 @@ namespace BitBucket
             string branchtag,
             string filename,
             string refSerialNumber,
-            List<string> savepaths)
+            List<string> savepaths,
+            CancellationToken cancellationToken = default)
         {
             ClearErrorFlags();
 
-            var label = refType == GitRefType.Branch
-                ? "heads"
-                : "tags";
+            var label =
+                refType == GitRefType.Branch
+                    ? "heads"
+                    : "tags";
 
-            var url = $"{_baseURL}/projects/{project}/repos/{repo}/raw/{filename}";
+            var url =
+                $"{_baseURL}/projects/{project}/repos/{repo}/raw/{filename}";
+
             if (!string.IsNullOrWhiteSpace(branchtag))
             {
                 url += $"?at=refs/{label}/{Uri.EscapeDataString(branchtag)}";
             }
+
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 foreach (var dir in savepaths)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var dirname = Path.GetDirectoryName(dir);
                     Directory.CreateDirectory(dirname);
                 }
 
-                using var response = await _client.GetAsync(url);
+                using var response =
+                    await _client.GetAsync(url, cancellationToken);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    CheckAndThrowIfError(await response.Content.ReadAsStringAsync());
+                    CheckAndThrowIfError(
+                        await response.Content.ReadAsStringAsync(cancellationToken));
+
                     return Result;
                 }
-                var content = await response.Content.ReadAsStringAsync();
+
+                var content =
+                    await response.Content.ReadAsStringAsync(cancellationToken);
+
                 content = content.ReplaceLineEndings("\r\n");
-                await Task.WhenAll(savepaths.Select(path =>File.WriteAllTextAsync(path, content)));
+
+                await Task.WhenAll(
+                    savepaths.Select(path =>
+                        File.WriteAllTextAsync(
+                            path,
+                            content,
+                            cancellationToken)));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
                 CatchAndPromptErr(ex);
             }
+
             return Result;
         }
         public async Task<string> GetFileContent(
@@ -232,19 +369,20 @@ namespace BitBucket
             string repo,
             string filename,
             string commitHash,
-            CancellationToken token)
+            CancellationToken cancellationToken = default)
         {
             var url =
                 $"{_baseURL}/projects/{project}/repos/{repo}/raw/{filename}" +
                 $"?at={commitHash}";
 
             using var response =
-                await _client.GetAsync(url, token);
+                await _client.GetAsync(url, cancellationToken);
 
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadAsStringAsync(token);
+            return await response.Content.ReadAsStringAsync(cancellationToken);
         }
+
     }
     public enum GitRefType
     {

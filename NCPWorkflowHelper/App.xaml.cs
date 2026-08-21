@@ -1,15 +1,16 @@
 ﻿using FileSystem.Services;
-using Microsoft.Extensions.DependencyInjection;
 using NCPWorkflowHelper.Views;
 using System.Net.Http;
 using System.Windows;
+using Utility.Lib.AtlassianService;
 using Utility.Lib.BitBucketRepositories;
-using Utility.Lib.Datasheet;
 using Utility.Lib.NewSystemWorkspace;
 using Utility.Lib.PatchSync;
+using Utility.Lib.Release;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.Storage;
 using Utility.Lib.UserAccount;
+using Utility.Lib.Wiki;
 using Utility.SQL;
 
 namespace NCPWorkflowHelper
@@ -28,19 +29,22 @@ namespace NCPWorkflowHelper
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterSingleton<SettingHandler<StorageDat<Project>>>();
-            containerRegistry.RegisterSingleton<SettingHandler<StorageDat<Branch>>>();
-            containerRegistry.RegisterSingleton<SettingHandler<StorageDat<Repository>>>();
-            containerRegistry.RegisterSingleton<SettingHandler<StorageDat<Commit>>>();
-            containerRegistry.RegisterSingleton<SettingHandler<StorageDat<Tag>>>();
+            containerRegistry.RegisterSingleton<SettingHandler<StorageDatList<Project>>>();
+            containerRegistry.RegisterSingleton<SettingHandler<StorageDatList<Branch>>>();
+            containerRegistry.RegisterSingleton<SettingHandler<StorageDatList<Repository>>>();
+            containerRegistry.RegisterSingleton<SettingHandler<StorageDatList<Commit>>>();
+            containerRegistry.RegisterSingleton<SettingHandler<StorageDatList<Tag>>>();
+            containerRegistry.RegisterSingleton<SettingHandler<StorageDat<CustomerAbbreviation>>>();
             containerRegistry.RegisterSingleton<SettingHandler<UserAccount>>();
             containerRegistry.RegisterSingleton<SettingHandler<PatchFilesStorage>>();
             containerRegistry.RegisterSingleton<SettingHandler<PatchForwardLookup>>();
             containerRegistry.RegisterSingleton<SettingHandler<PatchReverseLookup>>();
             containerRegistry.RegisterSingleton<SettingHandler<NewSystemStorage>>();
+            containerRegistry.RegisterSingleton<SettingHandler<ReleaseStorage>>();
             containerRegistry.RegisterSingleton<SQLLib>();
             containerRegistry.RegisterSingleton<HttpClient>();
             containerRegistry.RegisterSingleton<IFileSystemWatchService, FileSystemWatchService>();
+            containerRegistry.RegisterSingleton<AtlassianService>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
@@ -50,7 +54,7 @@ namespace NCPWorkflowHelper
             moduleCatalog.AddModule<PatchViewerModule.PatchViewerModule>();
             moduleCatalog.AddModule<NewSystemCreationHelperModule.NewSystemCreationHelperModule>();
             moduleCatalog.AddModule<FileSystem.FileSystemModule>();
-            moduleCatalog.AddModule<ReleaseOverallSyncHelper.ReleaseOverallSyncHelperModule>(); 
+            moduleCatalog.AddModule<ReleaseOverallSyncHelper.ReleaseOverallSyncHelperModule>();
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using BitBucket;
 using System.Collections.ObjectModel;
 using System.Net.Http;
+using System.Windows;
 using Utility;
 using Utility.EventAggregator;
 using Utility.Lib.BitBucketActive.Task;
@@ -18,11 +19,11 @@ namespace RepositoriesModule.ViewModels
         public ObservableCollection<Branch> Branches { get; set; } = new ObservableCollection<Branch>();
         public BitBucketTask Form { get; private set; }
         private SettingHandler<UserAccount> UserAccountHandler;
-        private SettingHandler<StorageDat<Tag>> TagDatasetHandler;
-        private SettingHandler<StorageDat<Commit>> CommitDatasetHandler;
-        private SettingHandler<StorageDat<Branch>> BranchDatasetHandler;
-        private SettingHandler<StorageDat<Repository>> RepositoryDatasetHandler;
-        private SettingHandler<StorageDat<Project>> ProjectDatasetHandler;
+        private SettingHandler<StorageDatList<Tag>> TagDatasetHandler;
+        private SettingHandler<StorageDatList<Commit>> CommitDatasetHandler;
+        private SettingHandler<StorageDatList<Branch>> BranchDatasetHandler;
+        private SettingHandler<StorageDatList<Repository>> RepositoryDatasetHandler;
+        private SettingHandler<StorageDatList<Project>> ProjectDatasetHandler;
         public AsyncDelegateCommand GetNextTagCommand { get; protected set; }
         public AsyncDelegateCommand SaveDataCommand { get; protected set; }
 
@@ -43,13 +44,13 @@ namespace RepositoriesModule.ViewModels
         private BitBucketTagHandler _tagHandler;
 
         IEventAggregator _ea;
-        public TaskFormViewModel(IEventAggregator ea, SettingHandler<StorageDat<Tag>> tag, SettingHandler<StorageDat<Commit>> commit, SettingHandler<StorageDat<Branch>> branch, SettingHandler<StorageDat<Repository>> repository, SettingHandler<StorageDat<Project>> project, SettingHandler<UserAccount> userAccHandler, HttpClient client)
+        public TaskFormViewModel(IEventAggregator ea, SettingHandler<StorageDatList<Tag>> tag, SettingHandler<StorageDatList<Commit>> commit, SettingHandler<StorageDatList<Branch>> branch, SettingHandler<StorageDatList<Repository>> repository, SettingHandler<StorageDatList<Project>> project, SettingHandler<UserAccount> userAccHandler, HttpClient client)
         {
             _ea = ea;
             Form = new BitBucketTask(ea);
             UserAccountHandler = userAccHandler;
             TagDatasetHandler = tag;
-            CommitDatasetHandler = commit;
+            //CommitDatasetHandler = commit;
             BranchDatasetHandler = branch;
             RepositoryDatasetHandler = repository;
             ProjectDatasetHandler = project;
@@ -63,7 +64,7 @@ namespace RepositoriesModule.ViewModels
             UpdateRepository();
             UpdateBranch();
 
-            _tagHandler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, CommitDatasetHandler.Get, client);
+            //_tagHandler = new BitBucketTagHandler(UserAccountHandler.Get.BBHTMLToken, CommitDatasetHandler.Get, client);
 
             _ea.GetEvent<ProjectSelectedChanged>().Subscribe(ProjectReceived);
             _ea.GetEvent<RepositorySelectedChanged>().Subscribe(RepositoryReceived);
@@ -87,22 +88,31 @@ namespace RepositoriesModule.ViewModels
 
         private void UpdateProject()
         {
-            Projects.Clear();
-            if (!ProjectDatasetHandler.Get.Storage.ContainsKey(projectkey)) return;
-            Projects.AddRange(ProjectDatasetHandler.Get.Storage[projectkey]);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Projects.Clear();
+                if (!ProjectDatasetHandler.Get.Storage.ContainsKey(projectkey)) return;
+                Projects.AddRange(ProjectDatasetHandler.Get.Storage[projectkey]);
+            });
         }
 
         private void UpdateRepository()
         {
-            Repositories.Clear();
-            if (Form?.Project == null || !RepositoryDatasetHandler.Get.Storage.ContainsKey(repositorykey)) return;
-            Repositories.AddRange(RepositoryDatasetHandler.Get.Storage[repositorykey]);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Repositories.Clear();
+                if (Form?.Project == null || !RepositoryDatasetHandler.Get.Storage.ContainsKey(repositorykey)) return;
+                Repositories.AddRange(RepositoryDatasetHandler.Get.Storage[repositorykey]);
+            });
         }
         private void UpdateBranch()
         {
-            Branches.Clear();
-            if (Form.Project == null || Form.Repository == null || !BranchDatasetHandler.Get.Storage.ContainsKey(branchkey)) return;
-            Branches.AddRange(BranchDatasetHandler.Get.Storage[branchkey]);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Branches.Clear();
+                if (Form.Project == null || Form.Repository == null || !BranchDatasetHandler.Get.Storage.ContainsKey(branchkey)) return;
+                Branches.AddRange(BranchDatasetHandler.Get.Storage[branchkey]);
+            });
         }
         private async void BranchReceived(Branch message)
         {
@@ -141,10 +151,10 @@ namespace RepositoriesModule.ViewModels
         {
             await Task.Run(() =>
             {
-                var result = _tagHandler.GetLatestTagAndNext(Form.Project?.key, Form.Repository?.name, Form.Branch?.displayId);
-                Form.LatestTag = result.Item1;
+                var result = _tagHandler.GetLatestTagAndNext(Form.Project?.key, Form.Repository?.name);
+                //Form.LatestTag = result.Item1;
                 Form.NextTag = result.Item2;
-                Selected = result.Item1;
+                //Selected = result.Item1;
             });
         }
     }

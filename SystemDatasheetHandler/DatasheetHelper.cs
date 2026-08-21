@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
-using Utility;
+﻿using System.Text.RegularExpressions;
 using Utility.Lib.Datasheet;
 
 namespace SystemDatasheetHandler

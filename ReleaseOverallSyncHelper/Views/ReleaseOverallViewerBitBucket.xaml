@@ -16,7 +16,7 @@
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="0.1*"/>
             <RowDefinition Height="6*"/>
             <RowDefinition Height="6*"/>
             <RowDefinition Height="1*"/>
@@ -75,8 +75,8 @@
 
                                     <ContextMenu>
 
-                                        <MenuItem Header="Open Commit"
-                                         Command="{Binding Data.OpenCommitCommand,
+                                        <MenuItem Header="Open Path"
+                                         Command="{Binding Data.OpenPathCommand,
                                                            Source={StaticResource VmProxy}}"
                                          CommandParameter="{Binding}" />
 
@@ -98,7 +98,7 @@
          VerticalScrollBarVisibility="Auto"
          HorizontalScrollBarVisibility="Auto"
          FontFamily="Consolas"
-         Margin="0,0,0,5"/>
+         Margin="0,5,0,5"/>
         <DataGrid ItemsSource="{Binding UnitSelections}"
                 BorderThickness="1"
                 Grid.Row="5"

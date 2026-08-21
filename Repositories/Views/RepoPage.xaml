@@ -10,7 +10,6 @@
              xmlns:prism="http://prismlibrary.com/" xmlns:it="http://schemas.microsoft.com/xaml/behaviors"
              prism:ViewModelLocator.AutoWireViewModel="True">
     <StackPanel>
-        <RepositoriesModule:TaskForm/>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
             <RepositoriesModule:ProjectList/>
             <RepositoriesModule:Repositorylist Margin="10,0,0,0"/>

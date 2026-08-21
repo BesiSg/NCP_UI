@@ -1,8 +1,7 @@
 ﻿using System.IO;
 using System.Text.RegularExpressions;
-using Utility;
 
-namespace ReleaseOverallSyncHelper.Models
+namespace Utility.Lib.Release
 {
     public class ReleaseOverallUnitSelection : BaseUtility
     {
@@ -26,18 +25,21 @@ namespace ReleaseOverallSyncHelper.Models
             get => GetValue(() => ClonePath);
             set => SetValue(() => ClonePath, value);
         }
-        public ReleaseOverallUnitSelection(string tag, string unit, string version)
+        public ReleaseOverallUnitSelection(string releasetag, string unit, string unittag)
         {
             Unit = unit;
-            Version = version;
+            Version = unittag;
             Selected = true;
             var folder = Version.Replace('.', '_');
-            var buildpath = ToPatchFolderName(tag);
+            var buildpath = ToPatchFolderName(releasetag);
             var unitparts = Unit.Split('_');
             var unitlabel = unitparts.LastOrDefault();
+            unitlabel = char.ToUpperInvariant(unitlabel[0]) + unitlabel.Substring(1).ToLowerInvariant();
             var path = Path.Combine("P:\\fngams\\develop\\", buildpath, unitlabel, folder);
             ClonePath = path;
         }
+        public ReleaseOverallUnitSelection()
+        { }
         private string ToPatchFolderName(string tag)
         {
             var match = Regex.Match(

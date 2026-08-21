@@ -11,6 +11,24 @@ namespace Utility
 {
     public static class Extension
     {
+        public static string NormalizeVersion(string version)
+        {
+            if (string.IsNullOrWhiteSpace(version))
+                return string.Empty;
+
+            return version.TrimStart('V', 'v', 'R', 'r');
+        }
+        public static string GetNameAttribute(this Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+
+            return field?
+                .GetCustomAttributes(typeof(NameAttribute), false)
+                .Cast<NameAttribute>()
+                .FirstOrDefault()?
+                .Name
+                ?? value.ToString();
+        }
         public static string ToPascalCase(this string value)
         {
             if (string.IsNullOrWhiteSpace(value))

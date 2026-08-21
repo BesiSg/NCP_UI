@@ -1,8 +1,8 @@
 ﻿using RestSharp;
-using RestSharp.Authenticators;
 using System.IO;
 using System.Text.Json;
 using Utility;
+using Utility.Lib.AtlassianService;
 using Utility.Lib.Ticket;
 using Utility.Lib.UserAccount;
 using Comment = Utility.Lib.Ticket.Comment;
@@ -12,14 +12,10 @@ namespace JiraWrapper
 {
     public class AtlassianJira
     {
-        private readonly RestClient _client;
-        public AtlassianJira(UserAccount account)
+        private readonly IAtlassianService _client;
+        public AtlassianJira(UserAccount account, IAtlassianService client)
         {
-            _client = new RestClient("https://besi.atlassian.net/")
-            {
-                Authenticator = new HttpBasicAuthenticator(account.Email, account.JiraPAToken)
-                //Authenticator = new HttpBasicAuthenticator(email, "ATATT3xFfGF0RtGP4EjlH3ntjkfCTP-4FOCMqjV9qbHwpPupuTN6JuVYitc4rb_98PFp7d2skFWu8xFvm0-t0C72F6qpEGiBueOKxaIOrrpjIGyq67F8FPd-eaOMhDcQXYDHK0PQs3jEB54uUMuefK-4fXNt45iFXmOiGFLqzs048yqzRwBzlCg=0485EF41")
-            };
+            _client = client;
         }
         public IEnumerable<Issue> GetIssues(Project project, DateTime changeDate)
         {
@@ -63,7 +59,7 @@ namespace JiraWrapper
 
         public async Task<Issue?> GetIssueAsync(string ticketNumber)
         {
-            var request = new RestRequest($"rest/api/3/issue/{ticketNumber}", Method.GET);
+            var request = new RestRequest($"rest/api/3/issue/{ticketNumber}", Method.Get);
 
             request.AddParameter("fields", "*all");
 
@@ -86,7 +82,7 @@ namespace JiraWrapper
                 if (!attachment.Filename.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                var request = new RestRequest(attachment.Content, Method.GET);
+                var request = new RestRequest(attachment.Content, Method.Get);
 
                 var response = await _client.ExecuteAsync(request);
 
@@ -113,7 +109,7 @@ namespace JiraWrapper
 
             while (!isLast)
             {
-                var request = new RestRequest("rest/api/3/search/jql", Method.GET);
+                var request = new RestRequest("rest/api/3/search/jql", Method.Get);
                 request.AddHeader("Accept", "application/json");
 
                 request.AddParameter("jql", jql);

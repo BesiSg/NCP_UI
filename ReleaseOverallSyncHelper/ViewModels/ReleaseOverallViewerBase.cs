@@ -1,25 +1,58 @@
-﻿using FileSearcher;
-using NCPBitbucket;
-using ReleaseOverallSyncHelper.Models;
+﻿using NCPBitbucket;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Http;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
-using System.Windows;
 using Utility;
+using Utility.Lib.Release;
 using Utility.Lib.SettingHandler;
 using Utility.Lib.UserAccount;
 
 namespace ReleaseOverallSyncHelper.ViewModels
 {
-    public abstract class ReleaseOverallViewerBase : ViewModelBase
+    public abstract class ReleaseOverallViewerBase<T> : ViewModelBase
+        where T : BaseUtility
     {
-        private string _searchpattern = string.Empty;
+        protected const string _searchpattern = @"^R(?<Version>\d+\.\d+\.\d+)\.(?<Customer>[A-Za-z]+?)(?<Revision>\d+(?:-[A-Za-z0-9]+)?|-[A-Za-z0-9]+)$";
         private NCPBitbucketHandler _ncpBitBucketHandler;
+        private ReleaseOverallParser _releaseOverallParser;
         public ObservableCollection<ReleaseOverallUnitSelection> UnitSelections { get; } = new();
+        public ObservableCollection<T> Collection { get; } = new();
+        protected List<T> FullContent { get; } = new();
+
+        public AsyncDelegateCommand StartCommand { get; protected set; }
+        public DelegateCommand<T> OpenPathCommand { get; protected set; }
+        public AsyncDelegateCommand<T> OpenCfgCommand { get; protected set; }
+        public AsyncDelegateCommand SearchCommand { get; protected set; }
+        public string SearchText
+        {
+            get => GetValue(() => SearchText);
+            set => SetValue(() => SearchText, value);
+        }
+        protected abstract Task Start();
+        public bool CanStart
+        {
+            get => GetValue(() => CanStart);
+            set => SetValue(() => CanStart, value);
+        }
+        protected abstract void OpenPath(T source);
+        protected abstract Task OpenCfg(T source);
+        protected abstract Task Search();
+        protected void ClearAll()
+        {
+            FullContent.Clear();
+            Collection.Clear();
+        }
+        protected void UpdateBothList(List<T> source)
+        {
+            FullContent.AddRange(source);
+            Collection.AddRange(source);
+        }
+        protected void UpdateDisplay(List<T> source)
+        {
+            Collection.Clear();
+            Collection.AddRange(source);
+        }
+        protected CancellationTokenSource? _readCfgCts;
         public string CfgContent
         {
             get => GetValue(() => CfgContent);
@@ -30,6 +63,7 @@ namespace ReleaseOverallSyncHelper.ViewModels
             _ncpBitBucketHandler = new NCPBitbucketHandler(userAccHandler.Get.BBHTMLToken, client);
             CanCloneGit = false;
             Message = string.Empty;
+            _releaseOverallParser = new ReleaseOverallParser();
         }
         public AsyncDelegateCommand CloneGitCommand { get; protected set; }
         public DelegateCommand CancelCloneCommand { get; protected set; }
@@ -43,7 +77,7 @@ namespace ReleaseOverallSyncHelper.ViewModels
             get => GetValue(() => AllSelected);
             set
             {
-                
+
                 if (SetValue(() => AllSelected, value))
                 {
                     foreach (var item in UnitSelections)
@@ -95,38 +129,10 @@ namespace ReleaseOverallSyncHelper.ViewModels
             {
             }
         }
-
-        private const string EndMarker =
-            "# This is a dummy entry to satisfy the CopyRelease script";
-
-        private static readonly Regex UnitRegex =
-            new(
-                @"^(?<Unit>[A-Z0-9]{4}|Version_MMI)\s*(?:=)?\s+(?<Version>[VR]\S+)",
-                RegexOptions.Compiled |
-                RegexOptions.IgnoreCase |
-                RegexOptions.Multiline);
         protected void PopulateUnitSelections(string tag, string cfgContent)
         {
             UnitSelections.Clear();
-
-            // Ignore everything after the marker
-            int markerIndex = cfgContent.IndexOf(
-                EndMarker,
-                StringComparison.OrdinalIgnoreCase);
-
-            if (markerIndex >= 0)
-            {
-                cfgContent = cfgContent[..markerIndex];
-            }
-
-            foreach (Match match in UnitRegex.Matches(cfgContent))
-            {
-                var item = new ReleaseOverallUnitSelection(
-                        tag,
-                        match.Groups["Unit"].Value,
-                        match.Groups["Version"].Value);
-                UnitSelections.Add(item);
-            }
+            UnitSelections.AddRange(_releaseOverallParser.PopulateUnitSelections(tag, cfgContent));
             CanCloneGit = UnitSelections.Count != 0;
         }
         private async Task<string> CloneRepo(ReleaseOverallUnitSelection unit, CancellationToken cancellationToken)

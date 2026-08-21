@@ -16,7 +16,7 @@
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="0.1*"/>
             <RowDefinition Height="6*"/>
             <RowDefinition Height="6*"/>
             <RowDefinition Height="1*"/>
@@ -74,8 +74,8 @@
 
                                     <ContextMenu>
 
-                                        <MenuItem Header="Open Folder"
-                                          Command="{Binding Data.OpenFolderCommand,
+                                        <MenuItem Header="Open Path"
+                                          Command="{Binding Data.OpenPathCommand,
                                                             Source={StaticResource VmProxy}}"
                                           CommandParameter="{Binding}" />
 

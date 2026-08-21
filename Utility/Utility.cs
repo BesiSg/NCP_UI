@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
@@ -15,7 +16,6 @@ using System.Windows.Data;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using System.Runtime.InteropServices;
 namespace Utility
 {
     public sealed class NaturalSortComparer : IComparer<string>
@@ -1561,5 +1561,13 @@ namespace Utility
     {
         False,
         True,
+    }
+
+    public enum SearchResult
+    {
+        NotFinding,
+        Finding,
+        Found,
+        NotFound
     }
 }

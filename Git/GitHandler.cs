@@ -177,9 +177,45 @@ namespace Git
             bool singlebranch = true,
             CancellationToken cancellationToken = default)
         {
-            var ret = await Clone(project,repository,branch,destinationPath,singlebranch,cancellationToken);
+            var ret = await Clone(project, repository, branch, destinationPath, singlebranch, cancellationToken);
             if (ret != string.Empty) return ret;
             return await CheckoutTag(destinationPath, tag);
+        }
+
+        public async Task<bool> BranchExists(
+            string project,
+            string repository,
+            string branch,
+            CancellationToken cancellationToken = default)
+        {
+            using var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "git",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.StartInfo.ArgumentList.Add("ls-remote");
+            process.StartInfo.ArgumentList.Add("--heads");
+            process.StartInfo.ArgumentList.Add($"ssh://{_host}/{project}/{repository}.git");
+            process.StartInfo.ArgumentList.Add(branch);
+
+            process.Start();
+
+            string output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+            string error = await process.StandardError.ReadToEndAsync(cancellationToken);
+
+            await process.WaitForExitAsync(cancellationToken);
+
+            if (process.ExitCode != 0)
+                throw new Exception($"git ls-remote failed: {error}");
+
+            return !string.IsNullOrWhiteSpace(output);
         }
     }
 }

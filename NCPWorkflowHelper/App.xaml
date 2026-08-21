@@ -16,6 +16,8 @@
             <local1:stringtoBool x:Key="stringtoBool"/>
             <local1:BoolToIconConverter x:Key="BoolToIconConverter"/>
             <local1:BooltoBrowseCommits x:Key="BooltoBrowseCommits"/>
+            <local1:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
+            <local1:SearchResultToBrushConverter x:Key="SearchResultToBrushConverter"/>
         </ResourceDictionary>
     </unity:PrismApplication.Resources>
 </unity:PrismApplication>
