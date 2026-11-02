@@ -69,51 +69,34 @@ namespace NCPBitbucket
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var match = Regex.Match(
-                    tag,
-                    @"^(?<Version>[RV]\d+\.\d+\.\d+[A-Z]?)(?:\.(?<Customer>[A-Za-z_-]+?)(?<Revision>\d+)|\.(?<Patch>patch))?$",
-                    RegexOptions.IgnoreCase);
+                //var match = Regex.Match(
+                //    tag,
+                //    @"^(?<Version>[RV]\d+\.\d+\.\d+[A-Z]?)(?:\.(?<Customer>[A-Za-z_-]+?)(?<Revision>\d+)|\.(?<Patch>patch))?$",
+                //    RegexOptions.IgnoreCase);
 
-                if (!match.Success)
-                    return $"Fail to find matching in Tag {tag}";
+                //if (!match.Success)
+                //    return $"Fail to find matching in Tag {tag}";
 
-                var version = match.Groups["Version"].Value.ToLowerInvariant();
+                //var version = match.Groups["Version"].Value.ToLowerInvariant();
 
-                var customer = match.Groups["Customer"].Value
-                    .ToLowerInvariant()
-                    .Replace('_', '-');
+                //var customer = match.Groups["Customer"].Value
+                //    .ToLowerInvariant()
+                //    .Replace('_', '-');
 
-                if (string.IsNullOrWhiteSpace(customer))
-                    customer = "common";
+                //if (string.IsNullOrWhiteSpace(customer))
+                //    customer = "common";
 
-                var branch = $"support/{customer}/{version}";
+                //var branch = $"support/{customer}/{version}";
 
-                cancellationToken.ThrowIfCancellationRequested();
+                //cancellationToken.ThrowIfCancellationRequested();
 
                 var repoSlug = repository.ToString();
 
-                var tags = await GetTags(
-                    "ncp",
-                    repoSlug,
-                    cancellationToken);
-
                 cancellationToken.ThrowIfCancellationRequested();
-
-                if (!tags.ContainsKey(tag))
-                {
-                    return await _gitHandler.Clone(
-                        project,
-                        repoSlug,
-                        branch,
-                        destinationPath,
-                        true,
-                        cancellationToken);
-                }
 
                 return await _gitHandler.Clone(
                     project,
                     repoSlug,
-                    branch,
                     tag,
                     destinationPath,
                     true,
@@ -251,9 +234,6 @@ namespace NCPBitbucket
 
         [NameAttribute("SEMA")]
         units_sema,
-
-        [NameAttribute("SEMO")]
-        units_semo,
 
         [NameAttribute("SPR2")]
         units_spr2,

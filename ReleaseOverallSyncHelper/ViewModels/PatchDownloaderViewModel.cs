@@ -161,6 +161,11 @@ namespace ReleaseOverallSyncHelper.ViewModels
             get => GetValue(() => CanCloneGit);
             set => SetValue(() => CanCloneGit, value);
         }
+        public bool ForceClone
+        {
+            get => GetValue(() => ForceClone);
+            set => SetValue(() => ForceClone, value);
+        }
         public string UserPath
         {
             get => GetValue(() => UserPath);
@@ -241,37 +246,45 @@ namespace ReleaseOverallSyncHelper.ViewModels
                     _cancelSearchCts = new CancellationTokenSource();
 
                     if (string.IsNullOrEmpty(SearchText) || string.IsNullOrEmpty(SelectedRepository)) return;
-
-                    matchVersion = Regex.Match(
-                        SearchText,
-                        @"^[VR]?(?<Version>\d+\.\d+\.\d+)(?:\.(?<Customer>[A-Za-z]+?)(?<Revision>\d+(?:-[A-Za-z0-9]+)?|-[A-Za-z0-9]+)?)?$",
-                        RegexOptions.IgnoreCase);
-
-                    if (!matchVersion.Success) return;
-
-                    var version = matchVersion.Groups["Version"].Value;
-                    CustBranch = _CustDat.Keys.FirstOrDefault(k => string.Equals(k, matchVersion.Groups["Customer"].Value, StringComparison.OrdinalIgnoreCase));
-                    Revision = matchVersion.Groups["Revision"].Value;
-
-                    if (string.IsNullOrEmpty(CustBranch)) return;
-
-                    (ReleaseVersion, ParsedVersion) =
-                        _storage.Get.GetReleaseVersion(SelectedRepository, version);
-
-                    if (string.IsNullOrEmpty(ParsedVersion) || string.IsNullOrEmpty(ReleaseVersion)) throw new Exception();
-
-                    _cancelSearchCts.Token.ThrowIfCancellationRequested();
-
                     SelectedRepository.TryToEnumByAttribute<NCPBitbucket.Repository>(out var repo);
                     var key = $"NCP {repo.ToString()}";
                     if (!_branchDat.Get.Storage.ContainsKey(key))
                         throw new Exception($"Branch data does not contain {repo.ToString()}. Try import data and check BB if the repository exists.\n\r");
-                    var branches = _branchDat.Get.Storage[key];
-                    var targetbranch = $"support/{CustBranch.ToLowerInvariant()}/{ParsedVersion.ToLowerInvariant()}";
-                    BranchExist = branches.Any(branch => string.Equals(branch.displayId, targetbranch, StringComparison.CurrentCultureIgnoreCase)) ? SearchResult.Found : SearchResult.NotFound;
-                    TagExist = DoesTagExist(repo.ToString(), $"{ParsedVersion.ToLowerInvariant()}.{CustBranch.ToLowerInvariant()}{Revision.ToLowerInvariant()}") ? SearchResult.Found : SearchResult.NotFound;
-                    var nexttag = GetNextTag(repo.ToString(), ParsedVersion, CustBranch, Revision);
-                    _unit = new ReleaseOverallUnitSelection(ReleaseVersion, SelectedRepository, TagExist == SearchResult.Found ? Tag : nexttag);
+                    matchVersion = Regex.Match(SearchText,
+                        @"^(?:
+                                [VR]?(?<Version>\d+\.\d+\.\d+)
+                                (?:\.(?<Customer>[A-Za-z]+?)(?<Revision>\d+(?:-[A-Za-z0-9]+)?|-[A-Za-z0-9]+)?)?
+                            |
+                                [V]?(?<Version>\d+\.\d+\.\d+)
+                                \.rc(?<Rc>\d+)
+                                -
+                                (?<Customer>[A-Za-z]+)
+                                (?<Revision>\d+)
+                                (?:-(?<Variant>[A-Za-z0-9]+))?
+                            )$",
+                        RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+                    if (!matchVersion.Success) return;
+                    var version = matchVersion.Groups["Version"].Value;
+                    Revision = matchVersion.Groups["Revision"].Value;
+                    (ReleaseVersion, ParsedVersion) = _storage.Get.GetReleaseVersion(SelectedRepository, version);
+                    if (string.IsNullOrEmpty(ParsedVersion) || string.IsNullOrEmpty(ReleaseVersion)) throw new Exception();
+                    if (!ForceClone)
+                    {
+                        CustBranch = _CustDat.Keys.FirstOrDefault(k => string.Equals(k, matchVersion.Groups["Customer"].Value, StringComparison.OrdinalIgnoreCase));
+                        if (string.IsNullOrEmpty(CustBranch)) return;
+                        _cancelSearchCts.Token.ThrowIfCancellationRequested();
+                        var branches = _branchDat.Get.Storage[key];
+                        var targetbranch = $"support/{CustBranch.ToLowerInvariant()}/{ParsedVersion.ToLowerInvariant()}";
+                        BranchExist = branches.Any(branch => string.Equals(branch.displayId, targetbranch, StringComparison.CurrentCultureIgnoreCase)) ? SearchResult.Found : SearchResult.NotFound;
+                        TagExist = DoesTagExist(repo.ToString(), $"{ParsedVersion.ToLowerInvariant()}.{CustBranch.ToLowerInvariant()}{Revision.ToLowerInvariant()}") ? SearchResult.Found : SearchResult.NotFound;
+                        var nexttag = GetNextTag(repo.ToString(), ParsedVersion, CustBranch, Revision);
+                        _unit = new ReleaseOverallUnitSelection(ReleaseVersion, SelectedRepository, TagExist == SearchResult.Found ? Tag : nexttag);
+                    }
+                    else
+                    {
+                        TagExist = DoesTagExist(repo.ToString(), SearchText) ? SearchResult.Found : SearchResult.NotFound;
+                        _unit = new ReleaseOverallUnitSelection(ReleaseVersion, SelectedRepository, SearchText);
+                    }
                     NextTag = _unit.Version;
                     AutoPath = _unit.ClonePath;
                     CanCloneGit = true;
@@ -372,6 +385,10 @@ namespace ReleaseOverallSyncHelper.ViewModels
                     var branchresult = await _BBBranchHandler.GetAllAsync($"NCP {repo}");
                     Message = branchresult.ErrorMessage + "\n\r";
                 }
+                catch(Exception ex)
+                {
+                    Message += $"{repo} encountered {ex.Message}" + "\n\r";
+                }
                 finally
                 {
                     semaphore.Release();
@@ -388,6 +405,10 @@ namespace ReleaseOverallSyncHelper.ViewModels
                         var tagresult = await _BBTagHandler.GetAllAsync($"NCP {repo}");
                         Message = tagresult.ErrorMessage + "\n\r";
                     }
+                    catch (Exception ex)
+                    {
+                        Message += $"{repo} encountered {ex.Message}" + "\n\r";
+                    }
                     finally
                     {
                         semaphore.Release();
@@ -402,8 +423,7 @@ namespace ReleaseOverallSyncHelper.ViewModels
             return _tagDat.Get.Storage[key].Any(t =>
                 string.Equals(
                     t.displayId,
-                    tag,
-                    StringComparison.InvariantCultureIgnoreCase));
+                    tag));
         }
         private string GetNextTag(string repo, string version, string customer, string revision)
         {

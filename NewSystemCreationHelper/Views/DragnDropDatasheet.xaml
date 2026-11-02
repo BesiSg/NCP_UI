@@ -84,9 +84,9 @@
             </TabItem>
             <TabItem Header="NewSystems">
                 <DataGrid ItemsSource="{Binding NewSystemWorkspacePath}"
-          AutoGenerateColumns="False"
-          CanUserAddRows="False"
-          CanUserDeleteRows="False">
+                    AutoGenerateColumns="False" SelectionMode="Extended" SelectionUnit="Cell"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="NCP"
                         Binding="{Binding Properties.NCP, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>

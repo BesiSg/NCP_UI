@@ -6,12 +6,12 @@ namespace FileSearcher
     {
         private string _root = string.Empty;
         private string _matchheader = string.Empty;
-        private string _matchend = string.Empty;
+        private string[] _matchend;
         private string _matchanywhere = string.Empty;
         private string _extension = string.Empty;
         private string _pattern = string.Empty;
         public Dictionary<string, List<PathName>> ReleaseOverall { get; private set; } = [];
-        public FolderSearcherHelper(string rootpath, string matchheader, string matchend, string matchanywhere, string extension, string pattern)
+        public FolderSearcherHelper(string rootpath, string matchheader, string[] matchend, string matchanywhere, string extension, string pattern)
         {
             _root = rootpath;
             _matchheader = matchheader;
@@ -29,20 +29,22 @@ namespace FileSearcher
 
             var releaseOverall = await Task.Run(() =>
             {
-                IEnumerable<string> folders = Enumerable.Empty<string>();
+                var folders = new List<string>();
 
                 if (!string.IsNullOrWhiteSpace(_matchheader) ||
-                    !string.IsNullOrWhiteSpace(_matchend))
+                    !_matchend.Any(s=>string.IsNullOrWhiteSpace(s)))
                 {
-                    folders = Directory.EnumerateDirectories(
-                        _root,
-                        $"{_matchheader}*{_matchend}");
+                    foreach (var item in _matchend)
+                    {
+                        var dir = Directory.EnumerateDirectories(_root, $"{_matchheader}*{item}").ToList();
+                        folders.AddRange(dir);
+                    }
                 }
                 else if (!string.IsNullOrWhiteSpace(_matchanywhere))
                 {
                     folders = Directory.EnumerateDirectories(
                         _root,
-                        $"*{_matchanywhere}*");
+                        $"*{_matchanywhere}*").ToList();
                 }
 
                 return folders

@@ -42,7 +42,7 @@ namespace Git
         public async Task<string> Clone(
             string project,
             string repository,
-            string branch,
+            string branchtag,
             string destinationPath,
             bool singlebranch = true,
             CancellationToken cancellationToken = default)
@@ -64,7 +64,7 @@ namespace Git
 
             process.StartInfo.ArgumentList.Add("clone");
             process.StartInfo.ArgumentList.Add("--branch");
-            process.StartInfo.ArgumentList.Add(branch);
+            process.StartInfo.ArgumentList.Add(branchtag);
 
             if (singlebranch)
                 process.StartInfo.ArgumentList.Add("--single-branch");
@@ -166,20 +166,6 @@ namespace Git
                 return ($"Git clone failed with exit code {process.ExitCode}, {ErrMessage}");
             }
             return string.Empty;
-        }
-
-        public async Task<string> Clone(
-            string project,
-            string repository,
-            string branch,
-            string tag,
-            string destinationPath,
-            bool singlebranch = true,
-            CancellationToken cancellationToken = default)
-        {
-            var ret = await Clone(project, repository, branch, destinationPath, singlebranch, cancellationToken);
-            if (ret != string.Empty) return ret;
-            return await CheckoutTag(destinationPath, tag);
         }
 
         public async Task<bool> BranchExists(

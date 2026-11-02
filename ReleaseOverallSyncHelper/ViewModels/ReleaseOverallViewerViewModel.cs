@@ -15,7 +15,7 @@ namespace ReleaseOverallSyncHelper.ViewModels
         public ReleaseOverallViewerViewModel(string path, SettingHandler<UserAccount> userAccHandler, HttpClient client) : base(userAccHandler, client)
         {
             _rootPath = path;
-            _foldersearcher = new FolderSearcherHelper(_rootPath, string.Empty, "patch", string.Empty, ".cfg", _searchpattern);
+            _foldersearcher = new FolderSearcherHelper(_rootPath, string.Empty, ["patch", "rc2-CDE"], string.Empty, ".cfg", _searchpattern);
             CanStart = true;
             Message = string.Empty;
             SearchText = string.Empty;
